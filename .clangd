@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - "-I/opt/homebrew/include"
+    - "-I/opt/homebrew/include/SDL2"
+    - "-I/opt/homebrew/opt/lua@5.4/include/lua"
+    - "-std=c++17"
+    - "-Wall"
+    - "-Wextra"
