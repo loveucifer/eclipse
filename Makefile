@@ -1,5 +1,5 @@
 CXX      := c++
-CXXFLAGS := -std=c++17 -Wall -Wextra -g
+CXXFLAGS := -std=c++17 -Wall -Wextra -Wfatal-errors -g
 LDFLAGS  :=
 
 SDL_CFLAGS   := $(shell pkg-config --cflags sdl2 SDL2_image SDL2_ttf SDL2_mixer)

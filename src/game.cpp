@@ -6,6 +6,7 @@
 #include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
+#include "glm/glm.hpp"
 #include "SDL_video.h"
 #include <iostream>
 
@@ -17,10 +18,18 @@ Game::~Game() {}
 
 bool Game::GetIsRunning() const { return this->isRunning; }
 
-float projectilePositionX = 0.0f;
-float projectilePositionY = 0.0f;
-float projectileVelocityX = 10.0f;
-float projectileVelocityY = 10.0f;
+
+// welll this was a naive way to deal with this
+// we should use vector instead from glm
+// float projectilePositionX = 0.0f;
+// float projectilePositionY = 0.0f;
+// float projectileVelocityX = 10.0f;
+// float projectileVelocityY = 10.0f;
+
+glm::vec2 projectilePosition = glm::vec2(0.0f,0.0f);
+glm::vec2 projectileVelocity = glm::vec2(10.0f,10.0f);
+
+// basically we just replaced our floats with vectors from glm 
 
 // what happens here is we initalize everything for sdl not just the keyboard or
 // some other thing
@@ -141,9 +150,23 @@ float deltaTime = (currentTicks - TicksLastFrame) / 1000.0f;
 deltaTime = (deltaTime > 0.05f) ? 0.05f : deltaTime;
 TicksLastFrame = currentTicks;
 
-  projectilePositionX += projectileVelocityX *deltaTime;
-  projectilePositionY += projectileVelocityY *deltaTime;
+  // projectilePositionX += projectileVelocityX *deltaTime;
+  // projectilePositionY += projectileVelocityY *deltaTime;
+projectilePosition = glm::vec2(
+  
+  projectilePosition.x += projectileVelocity.x *deltaTime,
+  projectilePosition.y += projectileVelocity.x *deltaTime
+);
 }
+
+  ///////////////////////////////////////////////////////////////////////
+  ///////// Double Buffering -> Back Buffering and Front Buffering //////
+  ///////////////////////////////////////////////////////////////////////
+  // sdl2 uses double buffering which means it has 2 buffers which consists of
+  // front and back buffer , what this means for us is that we clear the buffer
+  // draw all the game objects and then we swap the front and back buffers
+  // here first we set sdl set renderdraw color where we draw all game objects then we do sdl render present renderer which swaps the front and back buffers
+
 
 void Game::Render(){
   SDL_RenderClear(renderer);
@@ -153,15 +176,15 @@ void Game::Render(){
   // r for red g for green b for blue and a for alpha which is opacity
   SDL_RenderClear(renderer);
   SDL_Rect projectile {
-   (int)projectilePositionX,
-   (int)projectilePositionY,
+   (int)projectilePosition.x,
+   (int)projectilePosition.y,
    10,
    10
   };
 
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderFillRect(renderer, &projectile);
-  SDL_RenderPresent(renderer);
+  SDL_RenderPresent(renderer);  // this swaps the front and back buffers ( check comment above)
 
 }
 
