@@ -10,22 +10,27 @@ LUA_LIBS     := -L/opt/homebrew/opt/lua@5.4/lib -llua
 CXXFLAGS += $(SDL_CFLAGS) $(LUA_CFLAGS)
 LDFLAGS  += $(SDL_LIBS)   $(LUA_LIBS)
 
-SRC := main.cpp
-OBJ := main.o
-BIN := main
+SRCDIR := src
+BUILDDIR := build
+SRCS := $(wildcard $(SRCDIR)/*.cpp)
+OBJS := $(patsubst $(SRCDIR)/%.cpp, $(BUILDDIR)/%.o, $(SRCS))
+BIN  := main
 
 .PHONY: all build run clean
 
 all build: $(BIN)
 
-$(OBJ): $(SRC)
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp | $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BIN): $(OBJ)
+$(BIN): $(OBJS)
 	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
 
 run: $(BIN)
 	./$(BIN)
 
 clean:
-	rm -f $(OBJ) $(BIN)
+	rm -rf $(BUILDDIR) $(BIN)
