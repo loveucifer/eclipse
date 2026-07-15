@@ -5,6 +5,7 @@
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
 #include "SDL_render.h"
+#include "SDL_timer.h"
 #include "SDL_video.h"
 #include <iostream>
 
@@ -18,8 +19,8 @@ bool Game::GetIsRunning() const { return this->isRunning; }
 
 float projectilePositionX = 0.0f;
 float projectilePositionY = 0.0f;
-float projectileVeloctiyX = 10.0f;
-float projectileVeloctiyY = 10.0f;
+float projectileVelocityX = 10.0f;
+float projectileVelocityY = 10.0f;
 
 // what happens here is we initalize everything for sdl not just the keyboard or
 // some other thing
@@ -32,7 +33,7 @@ void Game::Initialize(int width, int height) {
   }
 
   window = SDL_CreateWindow(
-      
+
       NULL,
       SDL_WINDOWPOS_CENTERED,
       SDL_WINDOWPOS_CENTERED,
@@ -49,7 +50,7 @@ void Game::Initialize(int width, int height) {
   // constants from WINDOW_WIDTH AND WINDOW_HEIGHT but these are just passed as
   // is with width and height but just for reference for later :/ and last we
   // have flags
-  
+
     if (!window) {
       std::cerr << "Error creating SDL window" << "\n";
       return;
@@ -63,15 +64,13 @@ void Game::Initialize(int width, int height) {
     // which are window , index and flags
     // window is oobiously our window
     // index is the display monitor
-    // we can just say -1 which means default  
+    // we can just say -1 which means default
 
 if (! renderer){
   std::cerr << "Error creating SDL renderer " << '\n';
   return;
 }
-
-isRunning = true;
-return;
+ isRunning = true; return;
 
 }
 
@@ -104,14 +103,46 @@ void Game::ProcessInput() {
 // created event and then poll the events for which we have some cases and we use
 // switch here to assess for those cases which are for now if the user has decided
 // to quit the game , for eg if the user clicks " ESCAPE " we have to quit so we use
-// SDL_KEYDOWN to ensure that we do quit for this case 
+// SDL_KEYDOWN to ensure that we do quit for this case
 /////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////
+/////////////////// DELTA TIME //////////////////////
+// the thing about using values like this is that after
+// we use them they run differently based on different
+// specifications on the end users machine so for some
+// the projectile must be faster , for some it may be slow
+// we cant really have that we need to clip this somehow
+// and that is where delta time comes in , delta stands for change
+// or difference in something , so we use that to make it same for all the users
+// and how we do that is with this piece of code
+// float deltaTime = (SDL_GetTicks() - ticksLastFrame/1000.0f)
+// SDL_Getticks polls the necessary ticks we need
+// delta time is the differnece between ticks from last frame converted to seconds
+//////////////////////////////////////////////////////////////////
 
 void Game::Update(){
-  projectilePositionX += projectileVeloctiyX; 
-  projectilePositionY += projectileVeloctiyY;
+
+  // wait until taget time  (16ms) has elapsed
+
+ // while(!SDL_TICKS_PASSED(SDL_GetTicks(), TicksLastFrame + FRAME_TARGET_TIME));
+
+// while loops are cpu processes so they eat up unnecssary compute we actually want rather replace it with sdl delay
+
+int TimeToWait = FRAME_TARGET_TIME - (SDL_GetTicks() - TicksLastFrame);
+if (TimeToWait > 0 && TimeToWait <= static_cast<int>(FRAME_TARGET_TIME)){
+  SDL_Delay(TimeToWait);
+}
+
+
+Uint32 currentTicks = SDL_GetTicks();
+float deltaTime = (currentTicks - TicksLastFrame) / 1000.0f;
+deltaTime = (deltaTime > 0.05f) ? 0.05f : deltaTime;
+TicksLastFrame = currentTicks;
+
+  projectilePositionX += projectileVelocityX *deltaTime;
+  projectilePositionY += projectileVelocityY *deltaTime;
 }
 
 void Game::Render(){
@@ -131,7 +162,7 @@ void Game::Render(){
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderFillRect(renderer, &projectile);
   SDL_RenderPresent(renderer);
-  
+
 }
 
 

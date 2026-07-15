@@ -26,6 +26,7 @@ class Game {
     // GetIsRunning is a const because the value does not obiously change for the getter function in this case
     void Initialize (int width , int height);
     // intializing with the parameters window width and heihgt which we setup in cosntants.h
+    int TicksLastFrame;
     void ProcessInput();
     void Update();
     void Render();

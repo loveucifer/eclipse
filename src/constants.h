@@ -4,5 +4,10 @@
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
 
+const unsigned int FPS = 60;
+const unsigned int FRAME_TARGET_TIME = 1000/FPS;
+
+// frame target time is the time taken by a frame to render
+// fps is the frames per second 
 
 #endif
