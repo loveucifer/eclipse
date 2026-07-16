@@ -13,10 +13,6 @@ class Game {
     SDL_Window *window;
     // SDL_Window is a struct name for windows in SDL library
     // we initalize a pointer to this
-    SDL_Renderer *renderer;
-    // SDL_Renderer is a struct name for renderer in SDL library and same as
-    // before we init a pointer to this
-
 
  public:
    Game();
@@ -26,6 +22,11 @@ class Game {
     // GetIsRunning is a const because the value does not obiously change for the getter function in this case
     void Initialize (int width , int height);
     // intializing with the parameters window width and heihgt which we setup in cosntants.h
+    void LoadLevel(int level); // to load level we want 
+    static SDL_Renderer *renderer;
+    // SDL_Renderer is a struct name for renderer in SDL library and same as
+    // before we init a pointer to this
+    // made it static to use it within transfomr component
     int TicksLastFrame;
     void ProcessInput();
     void Update();

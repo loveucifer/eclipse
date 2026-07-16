@@ -9,6 +9,12 @@
 #include "glm/glm.hpp"
 #include "SDL_video.h"
 #include <iostream>
+#include "entitymanager.h"
+#include "transformcomponent.h"
+
+EntityManager manager;
+SDL_Renderer *Game::renderer;
+
 
 // constructor
 Game::Game() { this->isRunning = false; }
@@ -26,10 +32,10 @@ bool Game::GetIsRunning() const { return this->isRunning; }
 // float projectileVelocityX = 10.0f;
 // float projectileVelocityY = 10.0f;
 
-glm::vec2 projectilePosition = glm::vec2(0.0f,0.0f);
-glm::vec2 projectileVelocity = glm::vec2(10.0f,10.0f);
+// glm::vec2 projectilePosition = glm::vec2(0.0f,0.0f);
+// glm::vec2 projectileVelocity = glm::vec2(10.0f,10.0f);
 
-// basically we just replaced our floats with vectors from glm 
+// basically we just replaced our floats with vectors from glm
 
 // what happens here is we initalize everything for sdl not just the keyboard or
 // some other thing
@@ -79,8 +85,18 @@ if (! renderer){
   std::cerr << "Error creating SDL renderer " << '\n';
   return;
 }
- isRunning = true; return;
 
+LoadLevel(0);
+isRunning = true;
+return;
+}
+
+void Game::LoadLevel(int levelNumber) {
+
+  Entity &newEntity(manager.AddEntity("projectile"));
+  newEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
+  Entity &weirdEntity(manager.AddEntity("WEIRD"));
+  weirdEntity.AddComponent<TransformComponent>(100,100,20,20,32,32,1);
 }
 
 void Game::ProcessInput() {
@@ -150,13 +166,17 @@ float deltaTime = (currentTicks - TicksLastFrame) / 1000.0f;
 deltaTime = (deltaTime > 0.05f) ? 0.05f : deltaTime;
 TicksLastFrame = currentTicks;
 
-  // projectilePositionX += projectileVelocityX *deltaTime;
-  // projectilePositionY += projectileVelocityY *deltaTime;
-projectilePosition = glm::vec2(
-  
-  projectilePosition.x += projectileVelocity.x *deltaTime,
-  projectilePosition.y += projectileVelocity.x *deltaTime
-);
+// projectilePositionX += projectileVelocityX *deltaTime;
+// projectilePositionY += projectileVelocityY *deltaTime;
+// projectilePosition = glm::vec2(
+
+//   projectilePosition.x += projectileVelocity.x *deltaTime,
+//   projectilePosition.y += projectileVelocity.x *deltaTime
+// );
+//
+
+manager.Update(deltaTime);
+
 }
 
   ///////////////////////////////////////////////////////////////////////
@@ -167,35 +187,44 @@ projectilePosition = glm::vec2(
   // draw all the game objects and then we swap the front and back buffers
   // here first we set sdl set renderdraw color where we draw all game objects then we do sdl render present renderer which swaps the front and back buffers
 
-
-void Game::Render(){
-  SDL_RenderClear(renderer);
+void Game::Render() {
   SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
   // SetRenderDrawColor accepts 4 arguments
   // which are quite easy to figure out they are rgba
   // r for red g for green b for blue and a for alpha which is opacity
   SDL_RenderClear(renderer);
-  SDL_Rect projectile {
-   (int)projectilePosition.x,
-   (int)projectilePosition.y,
-   10,
-   10
-  };
+  // SDL_Rect projectile {
+  //  (int)projectilePosition.x,
+  //  (int)projectilePosition.y,
+  //  10,
+  //  10
+  // };
 
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-  SDL_RenderFillRect(renderer, &projectile);
-  SDL_RenderPresent(renderer);  // this swaps the front and back buffers ( check comment above)
+  // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  // SDL_RenderFillRect(renderer, &projectile);
 
+  if (manager.HasNoEntities()) {
+    return;
+  }
+
+  manager.Render();
+
+  SDL_RenderPresent(
+      renderer); // this swaps the front and back buffers ( check comment above)
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 // to put these functions into perspective we have Game::Update which is our
-// update function we make it so that the projectile postiion x gets added with the
-// velocity for each axis
-// then we ask the Game::Render which is our renderer fucntion to go and draw these points for that first we clear out render buffer which is not necessary btw i just did it so , then we ask it to draw our projectile it accepts 4 arguments which are x and y position and width and height , then we setup the draw color which accepts rgba which we set all to maximum and then we fill the rectangle with the colours , the fill rectangle accpets an argument for renderre and a pointer to where we want this to be drawn thiwhc is a pointer to our projectile
+// update function we make it so that the projectile postiion x gets added with
+// the velocity for each axis then we ask the Game::Render which is our renderer
+// fucntion to go and draw these points for that first we clear out render
+// buffer which is not necessary btw i just did it so , then we ask it to draw
+// our projectile it accepts 4 arguments which are x and y position and width
+// and height , then we setup the draw color which accepts rgba which we set all
+// to maximum and then we fill the rectangle with the colours , the fill
+// rectangle accpets an argument for renderre and a pointer to where we want
+// this to be drawn thiwhc is a pointer to our projectile
 ///////////////////////////////////////////////////////////////////////////////////////
-
 
 void Game::Destroy(){
   SDL_DestroyRenderer(renderer);
