@@ -6,7 +6,7 @@ Entity::Entity(EntityManager &manager): manager(manager){
 
 Entity::Entity(EntityManager &manager, std::string name): manager(manager), isEntityActive(),entityName(name){
     this -> isEntityActive = true;
-}
+} 
 
 void Entity::Update(float deltaTime){
   // we have to loop all the componenets of the entities

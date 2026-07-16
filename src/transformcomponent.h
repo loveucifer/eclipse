@@ -2,7 +2,7 @@
 #define TRANSFORM_COMPONENT_H
 #include "SDL_render.h"
 #include "entitymanager.h"
-#include "game.h"
+#include "game.h" 
 #include <glm/glm.hpp>
 #include <vector>
 #include <SDL2/SDL.h>

@@ -5,7 +5,7 @@ void EntityManager::Cleardata(){
   for (auto &entity:entities){
     entity -> Destroy();
   }
-}
+} 
 
 bool EntityManager::HasNoEntities() const {
   return entities.size() == 0;

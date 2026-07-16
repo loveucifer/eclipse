@@ -4,7 +4,7 @@
 class Entity;
 
 
-class Component {
+class Component { 
   private:
   public:
     Entity *owner;

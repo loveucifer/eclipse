@@ -101,7 +101,7 @@ void Game::LoadLevel(int levelNumber) {
 
 void Game::ProcessInput() {
   SDL_Event event;
-  SDL_PollEvent(&event);
+  SDL_PollEvent(&event); 
   switch (event.type) {
   case SDL_QUIT: {
     isRunning = false;

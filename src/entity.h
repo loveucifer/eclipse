@@ -6,7 +6,7 @@
 class EntityManager;
 class Component;
 
-class Entity {
+class Entity { 
   private:
     EntityManager &manager;
     bool isEntityActive;
@@ -29,7 +29,22 @@ class Entity {
       newComponent-> Initialize();
       return *newComponent;
     }
-    // TODO write about what this does 
+    // we use a template for this part and this is something that i need to write down
+    // to remember what it does exactly obviously this is a template and t is type of componenet
+    // we want to create , we dont know what type of componenet we want to create maybe a transfrom componenet
+    // sprite componenet etc and targs is a parameter pack which can reperestn argument types such as 
+    // int , double , etc m, then we go onto create a new componenet with T* new Componenet this does 2 things
+    // first is that it construfct an obj with type T so that suppose we have  class with transform componenet which has public 
+    // function transfrom componenet accpeitng 2 parameters of int x and y for position with this our add componenet works like
+    // addcomponenet<TransformComponenet>100,50 this becomes new Transform componenet 100,50 the next thing it does it
+    // it perfectly forwards our argument that we pass in, 
+    // important part about " std::forward " without forwarding the orignal value category is presevered so std::forward
+    // avoids unnesary copies , the next part is setting the owenre , sets the owner with this one and then emplaces back whihc
+    // means it stores it and then initalizes it and then returns the pointer to a new componenet its basically a function that says
+    // "Create a component, attach it to this entity, initialize it, and give it back to me."
+    // https://loveucifer.github.io/posts/game-engine-ecs/  here for more 
+    // 
+    // 
 };
 
 

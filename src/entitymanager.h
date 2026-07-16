@@ -6,7 +6,7 @@
 
 class EntityManager{
   private:
-    std::vector <Entity*> entities;
+    std::vector <Entity*> entities; 
   public:
     void Cleardata();
     void Update(float deltaTime);
