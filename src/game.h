@@ -6,6 +6,8 @@
 #include <SDL2/SDL_ttf.h> // ttfs for fonts from sdl2
 
 
+class AssetManager;
+
 class Game {
   private:
     bool isRunning;
@@ -24,6 +26,7 @@ class Game {
     // intializing with the parameters window width and heihgt which we setup in cosntants.h
     void LoadLevel(int level); // to load level we want 
     static SDL_Renderer *renderer;
+    static AssetManager* assetmanager;
     // SDL_Renderer is a struct name for renderer in SDL library and same as
     // before we init a pointer to this
     // made it static to use it within transfomr component

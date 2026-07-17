@@ -34,16 +34,7 @@ public:
 
   // we moved the update logic from component to transform component above
 
-  void Render() override {
-    SDL_Rect transformRectangle = {
-      (int) position.x,
-      (int) position.y,
-      width,
-      height
-    };
-    SDL_SetRenderDrawColor(Game::renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(Game::renderer, &transformRectangle);  
-      }
+  void Render() override {}
 };
 
 #endif

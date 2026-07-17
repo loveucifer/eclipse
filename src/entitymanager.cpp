@@ -1,11 +1,22 @@
 #include "./entitymanager.h"
+#include <iostream>
+#include "entity.h"
 
 // void cleardata destorys entities whenever needed
 void EntityManager::Cleardata(){
   for (auto &entity:entities){
     entity -> Destroy();
   }
-} 
+}
+
+void EntityManager::ListAllEntities() const {
+  unsigned int i = 0;
+  for (auto &entity : entities) {
+    std::cout << "Entity [ " << i << " ]" << entity->entityName << std::endl;
+    entity->ListAllComponents();
+    i++;
+  }
+}
 
 bool EntityManager::HasNoEntities() const {
   return entities.size() == 0;

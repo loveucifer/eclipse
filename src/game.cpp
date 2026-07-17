@@ -10,9 +10,14 @@
 #include "SDL_video.h"
 #include <iostream>
 #include "entitymanager.h"
+#include "assetmanager.h"
+#include "spritecomponent.h"
 #include "transformcomponent.h"
 
+
+
 EntityManager manager;
+AssetManager *Game::assetmanager = new AssetManager(&manager);
 SDL_Renderer *Game::renderer;
 
 
@@ -93,10 +98,30 @@ return;
 
 void Game::LoadLevel(int levelNumber) {
 
-  Entity &newEntity(manager.AddEntity("projectile"));
-  newEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
-  Entity &weirdEntity(manager.AddEntity("WEIRD"));
-  weirdEntity.AddComponent<TransformComponent>(100,100,20,20,32,32,1);
+  // load assets first
+  assetmanager ->AddTexture("tank-image", std::string("assets/images/tank-big-right.png").c_str());
+
+  
+  assetmanager ->AddTexture("helicopter-image", std::string("assets/images/chopper-spritesheet.png").c_str());
+
+
+  assetmanager ->AddTexture("radar-image", std::string("assets/images/radar.png").c_str());
+
+
+  // load entities after assets
+  
+
+  Entity &tankEntity(manager.AddEntity("tank"));
+  tankEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
+  tankEntity.AddComponent<SpriteComponent>("tank-image");
+
+  Entity &helicopterEntity(manager.AddEntity("helicopter"));
+  helicopterEntity.AddComponent<TransformComponent>(240 ,106 ,0 ,0 , 32 ,32 ,1);
+  helicopterEntity.AddComponent<SpriteComponent>("helicopter-image",2,90,true,false);
+
+  Entity &radarEntity(manager.AddEntity("Radar"));
+  radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1);
+  radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
 }
 
 void Game::ProcessInput() {

@@ -1,4 +1,5 @@
 #include "./entity.h"
+#include <iostream>
 
 Entity::Entity(EntityManager &manager): manager(manager){
   this -> isEntityActive = true;
@@ -6,6 +7,12 @@ Entity::Entity(EntityManager &manager): manager(manager){
 
 Entity::Entity(EntityManager &manager, std::string name): manager(manager), isEntityActive(),entityName(name){
     this -> isEntityActive = true;
+}
+
+void Entity::ListAllComponents()const {
+  for (auto mapElement: componentTypeMap){
+    std::cout << "Components " << mapElement.first -> name () << "> " <<std::endl;
+  }
 } 
 
 void Entity::Update(float deltaTime){
