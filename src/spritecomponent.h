@@ -51,9 +51,9 @@ class SpriteComponent: public Component {
           Animation upAnimation = Animation(3, numFrames, animationSpeed);
 
           animations.emplace ("DownAnimation" ,downAnimation);
-          animations.emplace ("UpAnimation",upAnimation);
           animations.emplace ("RightAnimation",rightAnimation);
-          animations.emplace ("upAanimation",upAnimation);
+          animations.emplace ("LeftAnimation",leftAnimation);
+          animations.emplace ("UpAnimation",upAnimation);
 
           this -> animationIndex = 0;
           this -> currentAnimationName ="DownAnimation";

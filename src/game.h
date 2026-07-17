@@ -1,5 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
+#include "SDL_events.h"
 #include "SDL_video.h"
 #include <SDL2/SDL.h> // sdl from sdl2
 #include <SDL2/SDL_image.h> // image from sdl2
@@ -27,6 +28,9 @@ class Game {
     void LoadLevel(int level); // to load level we want 
     static SDL_Renderer *renderer;
     static AssetManager* assetmanager;
+    static SDL_Event event;
+    // static event is needed to poll the events for keebcontrol 
+    
     // SDL_Renderer is a struct name for renderer in SDL library and same as
     // before we init a pointer to this
     // made it static to use it within transfomr component

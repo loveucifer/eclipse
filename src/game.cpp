@@ -13,13 +13,14 @@
 #include "assetmanager.h"
 #include "spritecomponent.h"
 #include "transformcomponent.h"
+#include "keebcontrol.h"
 
 
 
 EntityManager manager;
 AssetManager *Game::assetmanager = new AssetManager(&manager);
 SDL_Renderer *Game::renderer;
-
+SDL_Event Game::event;
 
 // constructor
 Game::Game() { this->isRunning = false; }
@@ -111,31 +112,40 @@ void Game::LoadLevel(int levelNumber) {
   // load entities after assets
   
 
+  Entity &helicopterEntity(manager.AddEntity("helicopter"));
+  helicopterEntity.AddComponent<TransformComponent>(240 ,106 ,0 ,0 , 32 ,32 ,1);
+  helicopterEntity.AddComponent<SpriteComponent>("helicopter-image",2,90,true,false);
+  helicopterEntity.AddComponent<KeebControl>("up","down","right","left","shoot");
+
   Entity &tankEntity(manager.AddEntity("tank"));
   tankEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
   tankEntity.AddComponent<SpriteComponent>("tank-image");
 
-  Entity &helicopterEntity(manager.AddEntity("helicopter"));
-  helicopterEntity.AddComponent<TransformComponent>(240 ,106 ,0 ,0 , 32 ,32 ,1);
-  helicopterEntity.AddComponent<SpriteComponent>("helicopter-image",2,90,true,false);
 
   Entity &radarEntity(manager.AddEntity("Radar"));
   radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1);
   radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
+
+
+
 }
 
+// we have been having event inside process input but we made it static
+// we do this so that in keyboard control componenet we can update the event there 
+
+
 void Game::ProcessInput() {
-  SDL_Event event;
-  SDL_PollEvent(&event); 
-  switch (event.type) {
+  SDL_PollEvent(&Game::event); 
+  switch (Game::event.type) {
   case SDL_QUIT: {
     isRunning = false;
     break;
   }
   case SDL_KEYDOWN: {
-    if (event.key.keysym.sym == SDLK_ESCAPE) {
+    if (Game::event.key.keysym.sym == SDLK_ESCAPE) {
       isRunning = false;
     }
+    break;
   }
 
   default: {
