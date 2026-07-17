@@ -14,13 +14,15 @@
 #include "spritecomponent.h"
 #include "transformcomponent.h"
 #include "keebcontrol.h"
-
+#include "map.h"
 
 
 EntityManager manager;
 AssetManager *Game::assetmanager = new AssetManager(&manager);
 SDL_Renderer *Game::renderer;
 SDL_Event Game::event;
+
+Map *map;
 
 // constructor
 Game::Game() { this->isRunning = false; }
@@ -109,6 +111,10 @@ void Game::LoadLevel(int levelNumber) {
   assetmanager ->AddTexture("radar-image", std::string("assets/images/radar.png").c_str());
 
 
+  assetmanager ->AddTexture("jungle-tile-texture", std::string("assets/tilemaps/jungle.png").c_str());
+
+  map = new Map ("jungle-tile-texture",1,32);
+  map->LoadMap("assets/tilemaps/jungle.map", 25, 20);
   // load entities after assets
   
 
@@ -125,7 +131,6 @@ void Game::LoadLevel(int levelNumber) {
   Entity &radarEntity(manager.AddEntity("Radar"));
   radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1);
   radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
-
 
 
 }
