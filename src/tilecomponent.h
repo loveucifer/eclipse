@@ -33,16 +33,15 @@ class TileComponent : public Component {
   }
 
   void Update(float deltaTime) override{
-    // TODO we will fix tileposition here based on camera control
+    destinationRectangle.x = position.x - Game::camera.x;
+    destinationRectangle.y = position.y - Game::camera.y;
   }
 
   void Render() override {
     TextureManager::Draw(texture, sourceRectangle, destinationRectangle,SDL_FLIP_NONE );
   }
 
-
 };
-
 
 
 #endif

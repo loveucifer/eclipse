@@ -5,8 +5,9 @@ Entity::Entity(EntityManager &manager): manager(manager){
   this -> isEntityActive = true;
 }
 
-Entity::Entity(EntityManager &manager, std::string name): manager(manager), isEntityActive(),entityName(name){
-    this -> isEntityActive = true;
+Entity::Entity(EntityManager &manager, std::string name, LayerType layer)
+    : manager(manager), isEntityActive(), entityName(name), layer(layer) {
+  this->isEntityActive = true;
 }
 
 void Entity::ListAllComponents()const {

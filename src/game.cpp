@@ -21,7 +21,7 @@ EntityManager manager;
 AssetManager *Game::assetmanager = new AssetManager(&manager);
 SDL_Renderer *Game::renderer;
 SDL_Event Game::event;
-
+SDL_Rect Game::camera = {0,0,WINDOW_WIDTH,WINDOW_HEIGHT};
 Map *map;
 
 // constructor
@@ -99,6 +99,9 @@ isRunning = true;
 return;
 }
 
+
+  Entity &helicopterEntity(manager.AddEntity("helicopter",PLAYER_LAYER));
+
 void Game::LoadLevel(int levelNumber) {
 
   // load assets first
@@ -118,19 +121,16 @@ void Game::LoadLevel(int levelNumber) {
   // load entities after assets
   
 
-  Entity &helicopterEntity(manager.AddEntity("helicopter"));
   helicopterEntity.AddComponent<TransformComponent>(240 ,106 ,0 ,0 , 32 ,32 ,1);
   helicopterEntity.AddComponent<SpriteComponent>("helicopter-image",2,90,true,false);
   helicopterEntity.AddComponent<KeebControl>("up","down","right","left","shoot");
 
-  Entity &tankEntity(manager.AddEntity("tank"));
+  Entity &tankEntity(manager.AddEntity("tank",ENEMY_LAYER));
   tankEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
   tankEntity.AddComponent<SpriteComponent>("tank-image");
 
 
-  Entity &radarEntity(manager.AddEntity("Radar"));
-  radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1);
-  radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
+  Entity &radarEntity(manager.AddEntity("Radar",GUI_LAYER)); radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1); radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
 
 
 }
@@ -215,8 +215,28 @@ TicksLastFrame = currentTicks;
 // );
 //
 
+HandleCameraMovement();
+
 manager.Update(deltaTime);
 
+}
+
+void Game::HandleCameraMovement() {
+  TransformComponent *mainPlayerTransform =
+      helicopterEntity.GetComponent<TransformComponent>();
+
+  camera.x =
+      mainPlayerTransform->position.x - static_cast<int>((WINDOW_WIDTH / 2));
+  camera.y =
+      mainPlayerTransform->position.y - static_cast<int>((WINDOW_HEIGHT / 2));
+
+// clamp for camera values
+
+
+  camera.x = camera.x < 0 ? 0:camera.x;
+  camera.y = camera.y <0 ? 0:camera.y;
+  camera.x = camera.x > camera.w ? camera.w :camera.x;
+  camera.y = camera.y > camera.h ? camera.h : camera.y;
 }
 
   ///////////////////////////////////////////////////////////////////////

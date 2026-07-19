@@ -30,6 +30,10 @@ class Game {
     static AssetManager* assetmanager;
     static SDL_Event event;
     // static event is needed to poll the events for keebcontrol 
+    static SDL_Rect camera;
+    void HandleCameraMovement();
+    // camera is basically a rectangle 
+
     
     // SDL_Renderer is a struct name for renderer in SDL library and same as
     // before we init a pointer to this
