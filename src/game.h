@@ -34,10 +34,14 @@ class Game {
     void HandleCameraMovement();
     // camera is basically a rectangle 
 
-    
+    void CheckCollisions();    
     // SDL_Renderer is a struct name for renderer in SDL library and same as
     // before we init a pointer to this
     // made it static to use it within transfomr component
+    void ProcessNextLevel(int levelNumber);
+    void ProcessGameOver();
+
+
     int TicksLastFrame;
     void ProcessInput();
     void Update();

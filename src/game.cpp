@@ -6,6 +6,7 @@
 #include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
+#include "SDL_ttf.h"
 #include "glm/glm.hpp"
 #include "SDL_video.h"
 #include <iostream>
@@ -15,7 +16,8 @@
 #include "transformcomponent.h"
 #include "keebcontrol.h"
 #include "map.h"
-
+#include "collidercomponent.h"
+#include "labelcomponent.h"
 
 EntityManager manager;
 AssetManager *Game::assetmanager = new AssetManager(&manager);
@@ -54,6 +56,12 @@ void Game::Initialize(int width, int height) {
     std::cerr << "Error initlaizing SDL." << '\n';
     return;
   }
+
+  if(TTF_Init() != 0 ) {
+    std::cerr << "Error initializing SDL TTF ( FONTS )" << std::endl;
+    return;
+  }
+
 
   window = SDL_CreateWindow(
 
@@ -113,22 +121,45 @@ void Game::LoadLevel(int levelNumber) {
 
   assetmanager ->AddTexture("radar-image", std::string("assets/images/radar.png").c_str());
 
+  assetmanager ->AddTexture("heliport-image", std::string("assets/images/heliport.png").c_str());
 
   assetmanager ->AddTexture("jungle-tile-texture", std::string("assets/tilemaps/jungle.png").c_str());
+
+
+  assetmanager ->AddFont("charriot-font", std::string("assets/fonts/charriot.ttf").c_str(), 14);
+
+
+
 
   map = new Map ("jungle-tile-texture",1,32);
   map->LoadMap("assets/tilemaps/jungle.map", 25, 20);
   // load entities after assets
-  
 
-  helicopterEntity.AddComponent<TransformComponent>(240 ,106 ,0 ,0 , 32 ,32 ,1);
-  helicopterEntity.AddComponent<SpriteComponent>("helicopter-image",2,90,true,false);
-  helicopterEntity.AddComponent<KeebControl>("up","down","right","left","shoot");
+  helicopterEntity.AddComponent<TransformComponent>(240, 106, 0, 0, 32, 32, 1);
+  helicopterEntity.AddComponent<SpriteComponent>("helicopter-image", 2, 90,
+                                                 true, false);
+  helicopterEntity.AddComponent<KeebControl>("up", "down", "right", "left",
+                                             "shoot");
+  helicopterEntity.AddComponent<ColliderComponent>("PLAYER", 240, 106, 32,
 
-  Entity &tankEntity(manager.AddEntity("tank",ENEMY_LAYER));
-  tankEntity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
+                                                   32);
+  Entity &tankEntity(manager.AddEntity("tank", ENEMY_LAYER));
+  tankEntity.AddComponent<TransformComponent>(150, 495, 5, 0, 32, 32, 1);
   tankEntity.AddComponent<SpriteComponent>("tank-image");
+  tankEntity.AddComponent<ColliderComponent>("ENEMY", 150, 495, 32, 32);
 
+  Entity &heliport(manager.AddEntity("heliport", OBSTACLE_LAYER));
+  heliport.AddComponent<TransformComponent>(470,420,0,0,32,32,1);
+  heliport.AddComponent<SpriteComponent>("heliport-image");
+  heliport.AddComponent<ColliderComponent>("LEVEL_COMPLETE",470,420,32,32);
+
+
+  Entity &label(manager.AddEntity("label", GUI_LAYER));
+  label.AddComponent<LabelComponent>(10,10,"First Level","charriot-font", WHITE_COLOR );
+
+
+
+  // not for later do pay attention to the no of parameters collider component accepts 
 
   Entity &radarEntity(manager.AddEntity("Radar",GUI_LAYER)); radarEntity.AddComponent<TransformComponent>(720,15,0,0,64,64,1); radarEntity.AddComponent<SpriteComponent>("radar-image",8,150,false,true);
 
@@ -205,7 +236,7 @@ Uint32 currentTicks = SDL_GetTicks();
 float deltaTime = (currentTicks - TicksLastFrame) / 1000.0f;
 deltaTime = (deltaTime > 0.05f) ? 0.05f : deltaTime;
 TicksLastFrame = currentTicks;
-
+manager.Update(deltaTime);
 // projectilePositionX += projectileVelocityX *deltaTime;
 // projectilePositionY += projectileVelocityY *deltaTime;
 // projectilePosition = glm::vec2(
@@ -216,8 +247,7 @@ TicksLastFrame = currentTicks;
 //
 
 HandleCameraMovement();
-
-manager.Update(deltaTime);
+CheckCollisions();
 
 }
 
@@ -238,6 +268,31 @@ void Game::HandleCameraMovement() {
   camera.x = camera.x > camera.w ? camera.w :camera.x;
   camera.y = camera.y > camera.h ? camera.h : camera.y;
 }
+
+void Game::CheckCollisions() {
+  CollisionType collisionType = manager.CheckCollisions();
+  if (collisionType == PLAYER_ENEMY_COLLISION) {
+    ProcessGameOver();
+  }
+  if (collisionType == PLAYER_LEVEL_COMPLETE_COLLISION) {
+    ProcessNextLevel(1);
+  }
+}
+
+void Game::ProcessGameOver(){
+  std::cout << "Game Over" << std::endl;
+  isRunning = false;
+}
+
+
+void Game::ProcessNextLevel(int levelNumber){
+
+  std::cout << "Next Level" << std::endl;
+  isRunning = false;
+  
+}
+
+
 
   ///////////////////////////////////////////////////////////////////////
   ///////// Double Buffering -> Back Buffering and Front Buffering //////
