@@ -1,0 +1,21 @@
+ifeq ($(config),debug)
+  TARGET_DIR = Debug
+else
+  TARGET_DIR = Release
+endif
+
+.PHONY: run gen build
+
+build: $(PROJECTS)
+	@echo "[make] building $(config)..."
+	@echo "[make] target dir: $(TARGET_DIR)"
+
+run: build
+	@echo "[make] Running eclipseeditor ($(config))"
+	$(SILENT) ./bin/$(TARGET_DIR)/eclipseeditor/eclipseeditor
+
+gen:
+	@echo "Generating project files..."
+	$(SILENT) ./premake5 --file=premake5.lua gmake
+	@grep -q '\-include Makefile.custom' Makefile 2>/dev/null || printf '\n-include Makefile.custom\n' >> Makefile
+	@echo "Including Makefile.custom"

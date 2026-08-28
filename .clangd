@@ -1,0 +1,23 @@
+CompileFlags:
+  Add:
+    - -std=c++17
+    - -Isrc
+    - -Icore
+    - -Imanagers
+    - -Igraphics
+    - -Iinput
+    - -isystem
+    - /Users/loveucifer/Works/eclipsev2/eclipse/include
+    - -isystem
+    - /opt/homebrew/include
+    - -isystem
+    - /opt/homebrew/include/SDL2
+    - -isystem
+    - /Users/loveucifer/Works/eclipsev2/external/spdlog/include
+    - -isystem
+    - /opt/homebrew/opt/glm/include
+    - -isystem
+    - /Users/loveucifer/Works/eclipsev2/external/glad/include
+    - -D_THREAD_SAFE
+    - -DGLFW_INCLUDE_NONE
+    - -DECLIPSE_PLATFORM_MAC

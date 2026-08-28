@@ -1,0 +1,37 @@
+# Build outputs
+bin/
+bin-obj/
+obj/
+Build/
+build/
+
+# Generated IDE / build files
+*.make
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.vcxproj.local
+*.xcodeproj/
+*.xcworkspace/
+*.opendb
+*.db
+Makefile
+*.ninja
+*.ninja_deps
+*.ninja_log
+
+# Python
+__pycache__/
+*.pyc
+
+# Linter / tool caches
+.ruff_cache/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local / IDE
+imgui.ini
+.vs/
