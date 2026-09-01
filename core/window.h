@@ -1,16 +1,34 @@
 #pragma once
 #include "imguiwindow.h"
 #include "SDL2/SDL_video.h"
+#include <string>
 struct SDL_Window;
 using SDL_GLContext = void*;
-
 namespace eclipse::core{
+
+    struct WindowProperties {
+        std::string title;
+        int x,y,w,h;
+        int wMin,hMin;
+        int flags;
+        float ccR,ccG,ccB; // clear color
+
+
+        // to handle imgui properties passed in
+        // from our imguiwindow.h
+
+        ImguiWindowProperties ImGuiProps;
+        
+
+        WindowProperties(); 
+      };
+
   class window{
     public:
       window();
       ~window();
 
-      bool Create();
+      bool Create(const WindowProperties& props);
 
       void Shutdown();
 
@@ -29,10 +47,10 @@ namespace eclipse::core{
       inline SDL_GLContext GetSDLGLContext(){return mGLContext;}
     private:
 
-
+      ImguiWindow mImGuiWindow;
       SDL_Window* mWindow; // sdl gives us a pointer to the window
       SDL_GLContext mGLContext;
        // already a void* no need for further pointers 
-      ImguiWindow mImGuiWindow;
+
   };
 }

@@ -22,6 +22,19 @@ private:
   float keySpeed = 0.01f;
 
 public:
+
+  // now that we have created our windowproperties and implemented it in our regular window.create
+  // we should make it override here 
+
+  core::WindowProperties GetWindowProperties() override {
+    core::WindowProperties props;
+    props.w = 800;
+    props.h = 600;
+    props.title = "Eclipse Editor";
+    props.ImGuiProps.IsViewPortEnabled = true;
+    props.ImGuiProps.IsDockingEnabled = true;
+    return props;
+  }
   void Initialize() override {
 
     ECLIPSE_TRACE("Editor:: Initialize()");
@@ -55,7 +68,7 @@ public:
             uniform vec2 offset = vec2 (0.5);
             void main(){
               vertexpos = position + vec3(offset , 0);
-              gl_Position = vec4(position,1.0); 
+              gl_Position = vec4(vertexpos,1.0); 
             }
          )";
 
@@ -134,12 +147,31 @@ public:
      }
 
   void ImGuiRender() override {
-      ImGui::ShowDemoWindow();    
+
+    // dock to window edge
+    ImGui::DockSpaceOverViewport(0,ImGui::GetMainViewport());
+    // note
+
+    if(ImGui::Begin("RectPosX")){
+      ImGui::DragFloat("Rect Pos X", &xKeyOffset,0.1f);
+      }
+      ImGui::End();
+
+    if(ImGui::Begin("RectPosY")){
+      ImGui::DragFloat("Rect Pos Y", &yKeyOffset,0.1f);
+      }
+    
+    ImGui::End();
   }
 
      
 
   void Shutdown() override { ECLIPSE_TRACE("Editor:: Shutdown()"); }
 };
+
+
+
+
+
 
 eclipse::App *CreateApp() { return new Editor(); }

@@ -56,7 +56,14 @@ bool engine::Initialize() {
     ECLIPSE_INFO("SDL {}.{}.{} ", (int)version.major, (int)version.minor,
                  (int)version.patch);
 
-    if (mWindow.Create()) {
+
+    // after creating the windowproperties getter in app we need to pass it in
+    // with a varaible called props to our mWindow.create and it will change depending
+    // on what props we are passing in whether its overriden props or just regular props
+    
+    // important you keep forgetinggg thisk
+    core::WindowProperties props = mApp ->GetWindowProperties();
+    if (mWindow.Create(props)) {
       // initialze managers
       mRenderManager.Initialize();
       ret = true;

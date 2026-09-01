@@ -11,6 +11,24 @@
 #include "../src/app.h"
 
 namespace eclipse::core{
+
+
+  WindowProperties::WindowProperties(){
+    
+        title = "eclipse";
+        x = SDL_WINDOWPOS_CENTERED;
+        y = SDL_WINDOWPOS_CENTERED;
+        w = 1920;
+        h = 1080;
+        wMin = 200;
+        hMin = 180;
+        flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        ccR = 0;
+        ccG = 0;
+        ccB = 255;
+  }
+
+  
   window::window():mWindow(nullptr){
     
   }
@@ -27,7 +45,7 @@ namespace eclipse::core{
   }
 
 
-  bool window::Create(){
+  bool window::Create(const WindowProperties& props){
 
     // we create the window with sdlcreatewindow , and accepts some parameters as following
     // x and y is the position we want it to be in we can just make it sdlwindowposcentered
@@ -36,9 +54,13 @@ namespace eclipse::core{
     // called sdl windowborderless that removes the border but it takes away the title a well but nvm , we also
     // have stuff like opengl and vulkan flags , maybe late
 
-    mWindow =
-        SDL_CreateWindow("eclipse", SDL_WINDOWPOS_CENTERED,
-                         SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    // mWindow =
+    //     SDL_CreateWindow("eclipse", SDL_WINDOWPOS_CENTERED,
+    //                      SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+     // use structs instead of this
+
+
+     mWindow = SDL_CreateWindow(props.title.c_str(), props.x, props.y, props.w, props.h, props.flags);
 
     if (!mWindow) {
       ECLIPSE_ERROR("Error initializing SDL: {}" , SDL_GetError());
@@ -61,7 +83,7 @@ namespace eclipse::core{
   // double buffering is a technique where we do all the draw calls to
   // the back buffer and then we tell opengl to swap those buffers
   // and this helps with flickering and stuff
-  SDL_SetWindowMinimumSize(mWindow, 200, 200);
+  SDL_SetWindowMinimumSize(mWindow, props.wMin, props.hMin);
 
   // now that we created all the attributes we want we can actually call opengl stuff
 
@@ -80,7 +102,7 @@ namespace eclipse::core{
   // IMGUI///
   ///////////
 
-    mImGuiWindow.Create(); //
+    mImGuiWindow.Create(props.ImGuiProps); //
     // we dont want to render for each frame inside a while loop
     // that seems foolishg need to do soemthing else
 
@@ -95,6 +117,8 @@ namespace eclipse::core{
   // glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); // blend things together
   // glClearColor(255,0,0,255);
 
+
+    engine::Instance().GetRenderManager().SetClearColor(props.ccR, props.ccG, props.ccB,1 );
 
     return true;
 
@@ -141,9 +165,17 @@ void window::PollEvents(){
   }
 
   // after polling the events update input
-    input::mouse::Update();  
+      // only update based on imgui conditions
+
+  if (!mImGuiWindow.WantCaptureMouse()) {
+
+    input::mouse::Update();
+  }
+
+  if (!mImGuiWindow.WantCaptureKeyboard()) {
+
     input::keyboard::Update();
-  
+  }
 }
 
 
