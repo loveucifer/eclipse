@@ -5,13 +5,13 @@
 #include "SDL2/SDL_video.h"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
+#include <memory>
 #include "../input/mouse.h"
 #include "../input/keyboard.h"
-#include "external/imgui/imgui.h"
+#include "../graphics/framebuffer.h"
 #include "../src/app.h"
 
 namespace eclipse::core{
-
 
   WindowProperties::WindowProperties(){
     
@@ -85,6 +85,9 @@ namespace eclipse::core{
   // and this helps with flickering and stuff
   SDL_SetWindowMinimumSize(mWindow, props.wMin, props.hMin);
 
+  // set attribute for stencil size
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,8 );
+
   // now that we created all the attributes we want we can actually call opengl stuff
 
   mGLContext = SDL_GL_CreateContext(mWindow);
@@ -118,7 +121,9 @@ namespace eclipse::core{
   // glClearColor(255,0,0,255);
 
 
-    engine::Instance().GetRenderManager().SetClearColor(props.ccR, props.ccG, props.ccB,1 );
+     mFrameBuffer = std::make_shared<graphics::FrameBuffer>(props.w,props.h);
+     mFrameBuffer ->SetClearColor(props.ccR, props.ccG, props.ccB, 1.f);
+     
 
     return true;
 
@@ -127,12 +132,23 @@ namespace eclipse::core{
 
 
 void window::BeginRender(){
+
+  auto& rm = engine::Instance().GetRenderManager();
+  rm.Clear();
+  rm.Submit(ECLIPSE_SUBMIT_RC(PushFrameBuffer,mFrameBuffer));
   // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the cached depth or color info
-  engine::Instance().GetRenderManager().Clear();  // clearing it from our new manager class
+
+
+
 }
 
 
 void window::EndRender(){
+
+  auto& rm = engine::Instance().GetRenderManager();
+  rm.Submit(ECLIPSE_SUBMIT_RC(PopFrameBuffer));
+  rm.Flush();
+  
   mImGuiWindow.BeginRender();
 
   // imgui calls

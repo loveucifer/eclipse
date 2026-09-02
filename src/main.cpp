@@ -1,14 +1,15 @@
 #include "main.h"
 #include "../graphics/mesh.h"
 #include "../graphics/shader.h"
-#include "app.h"
-#include "engine.h"
-#include "log.h"
-#include <memory>
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
+#include "app.h"
+#include "engine.h"
 #include "external/imgui/imgui.h"
-
+#include "log.h"
+#include <cstdint>
+#include <memory>
+#include "../graphics/framebuffer.h"
 using namespace eclipse;
 
 class Editor : public eclipse::App {
@@ -22,9 +23,8 @@ private:
   float keySpeed = 0.01f;
 
 public:
-
-  // now that we have created our windowproperties and implemented it in our regular window.create
-  // we should make it override here 
+  // now that we have created our windowproperties and implemented it in our
+  // regular window.create we should make it override here
 
   core::WindowProperties GetWindowProperties() override {
     core::WindowProperties props;
@@ -68,7 +68,7 @@ public:
             uniform vec2 offset = vec2 (0.5);
             void main(){
               vertexpos = position + vec3(offset , 0);
-              gl_Position = vec4(vertexpos,1.0); 
+              gl_Position = vec4(position,1.0); 
             }
          )";
 
@@ -84,8 +84,6 @@ public:
 
     mShader = std::make_shared<eclipse::graphics::shader>(vertexShader,
                                                           fragmentShader);
-
-
   }
 
   void Update() override {
@@ -133,45 +131,51 @@ public:
                   input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X1),
 
                   input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X2));
-
   }
 
   void Render() override {
 
-
     ECLIPSE_TRACE("Editor:: Render()");
-      auto rc = std::make_unique<graphics::rendercommands::RenderMesh>(mMesh,mShader);
-      engine::Instance().GetRenderManager().Submit(std::move(rc));
-      engine::Instance().GetRenderManager().Flush();
-      
-     }
+    auto rc =
+        std::make_unique<graphics::rendercommands::RenderMesh>(mMesh, mShader);
+    engine::Instance().GetRenderManager().Submit(std::move(rc));
+  }
 
   void ImGuiRender() override {
 
     // dock to window edge
-    ImGui::DockSpaceOverViewport(0,ImGui::GetMainViewport());
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
     // note
-
-    if(ImGui::Begin("RectPosX")){
-      ImGui::DragFloat("Rect Pos X", &xKeyOffset,0.1f);
-      }
-      ImGui::End();
-
-    if(ImGui::Begin("RectPosY")){
-      ImGui::DragFloat("Rect Pos Y", &yKeyOffset,0.1f);
-      }
     
+    if (ImGui::Begin("RectPosX")) {
+      ImGui::DragFloat("Rect Pos X", &xKeyOffset, 0.1f);
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("RectPosY")) {
+      ImGui::DragFloat("Rect Pos Y", &yKeyOffset, 0.1f);
+    }
+
+    ImGui::End();
+
+    if (ImGui::Begin("GameView")) {
+
+      if(ImGui::IsWindowHovered()){
+        ImGui::SetNextFrameWantCaptureMouse(false);
+      }
+      auto &window = engine::Instance().GetWindow();
+      ImVec2 size = {480,360};
+      ImVec2 uv0 ={0,1};
+      ImVec2 uv1 ={1,0};
+      ImGui::Image(
+        
+        ImTextureID(window.GetFrameBuffer()->GetTextureId()),size,uv0,uv1
+      );
+    }
     ImGui::End();
   }
 
-     
-
   void Shutdown() override { ECLIPSE_TRACE("Editor:: Shutdown()"); }
 };
-
-
-
-
-
 
 eclipse::App *CreateApp() { return new Editor(); }

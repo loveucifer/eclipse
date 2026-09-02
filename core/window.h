@@ -1,9 +1,17 @@
 #pragma once
 #include "imguiwindow.h"
 #include "SDL2/SDL_video.h"
+#include <memory>
 #include <string>
+#include "../graphics/framebuffer.h"
 struct SDL_Window;
 using SDL_GLContext = void*;
+
+namespace eclipse::graphics{
+  class FrameBuffer;
+}
+
+
 namespace eclipse::core{
 
     struct WindowProperties {
@@ -27,7 +35,6 @@ namespace eclipse::core{
     public:
       window();
       ~window();
-
       bool Create(const WindowProperties& props);
 
       void Shutdown();
@@ -41,7 +48,7 @@ namespace eclipse::core{
       void GetSize(int& w, int& h);
 
       inline SDL_Window* GetSDLWindow(){return mWindow;}
-
+      inline graphics::FrameBuffer* GetFrameBuffer(){return mFrameBuffer.get();}
       
       // we dont do a pointer here because its already a pointer wiht our void* on line 5
       inline SDL_GLContext GetSDLGLContext(){return mGLContext;}
@@ -51,6 +58,6 @@ namespace eclipse::core{
       SDL_Window* mWindow; // sdl gives us a pointer to the window
       SDL_GLContext mGLContext;
        // already a void* no need for further pointers 
-
+      std::shared_ptr<graphics::FrameBuffer>mFrameBuffer;
   };
 }

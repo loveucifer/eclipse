@@ -4,7 +4,8 @@
 #include "shader.h"
 #include <glad/glad.h>
 #include <memory>
-
+#include "../graphics/framebuffer.h"
+#include "../src/engine.h"
 namespace eclipse::graphics::rendercommands{
   void RenderMesh::Execute(){
     // weak ptr allows us to create a shared pointer
@@ -26,5 +27,19 @@ namespace eclipse::graphics::rendercommands{
     }else{
       ECLIPSE_WARN("Attempting to execute rendermesh with invalid data");
     }
+  }
+
+  void PushFrameBuffer::Execute(){
+    std::shared_ptr<FrameBuffer>fb = mFrameBuffer.lock();
+    if(fb){
+      engine::Instance().GetRenderManager().PushFrameBuffer(fb);
+    }else{
+      ECLIPSE_WARN("Attempting to execute push frame buffer with invalid data");
+      
+    }
+  }
+
+  void PopFrameBuffer::Execute(){
+    engine::Instance().GetRenderManager().PopFrameBuffer(nullptr);
   }
 }
