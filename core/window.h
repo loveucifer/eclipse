@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "../graphics/framebuffer.h"
+#include "../glm/glm.hpp"
 struct SDL_Window;
 using SDL_GLContext = void*;
 
@@ -19,8 +20,8 @@ namespace eclipse::core{
         int x,y,w,h;
         int wMin,hMin;
         int flags;
-        float ccR,ccG,ccB; // clear color
-
+        // float ccR,ccG,ccB; // clear color
+        glm::vec3 clearColor;
 
         // to handle imgui properties passed in
         // from our imguiwindow.h
@@ -45,7 +46,9 @@ namespace eclipse::core{
       void EndRender();
 
 
-      void GetSize(int& w, int& h);
+      // void GetSize(int& w, int& h);
+      glm::ivec2 GetSize(); //vector of 2 integers
+
 
       inline SDL_Window* GetSDLWindow(){return mWindow;}
       inline graphics::FrameBuffer* GetFrameBuffer(){return mFrameBuffer.get();}

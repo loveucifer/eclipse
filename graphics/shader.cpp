@@ -3,7 +3,7 @@
 #include "glad/glad.h"
 #include <cstdint>
 #include "helpers.h"
-
+#include "../glm/gtc/type_ptr.hpp"
 namespace eclipse::graphics {
 
 shader::shader(const std::string &vertex, const std::string &fragment) {
@@ -123,6 +123,32 @@ void shader::SetUniformFloat4(const std::string &name, float val1, float val2,
   glUseProgram(mProgramId);ECLIPSE_CHECK_GL_ERROR;
   glUniform4f(GetUniformLocation(name), val1, val2, val3, val4);ECLIPSE_CHECK_GL_ERROR;
 }
+
+
+
+  void shader::SetUniformFloat2(const std::string& name, const glm::vec2& val){
+    SetUniformFloat2(name,val.x,val.y);ECLIPSE_CHECK_GL_ERROR;
+  }
+  void shader::SetUniformFloat3(const std::string& name, const glm::vec3& val){
+
+    SetUniformFloat3(name,val.x,val.y,val.z);ECLIPSE_CHECK_GL_ERROR;
+  }
+  void shader::SetUniformFloat4(const std::string& name, const glm::vec4& val){
+
+    SetUniformFloat4(name,val.x,val.y,val.z,val.w);ECLIPSE_CHECK_GL_ERROR;
+  }
+
+  void shader::SetUniformMat3(const std::string& name , const glm::mat3& mat){
+    glUseProgram(mProgramId);ECLIPSE_CHECK_GL_ERROR;
+    glUniformMatrix3fv(GetUniformLocation(name),1,GL_FALSE,glm::value_ptr(mat));ECLIPSE_CHECK_GL_ERROR;
+  }
+  void shader::SetUniformMat4(const std::string& name , const glm::mat4& mat){
+    glUseProgram(mProgramId);ECLIPSE_CHECK_GL_ERROR;
+    glUniformMatrix4fv(GetUniformLocation(name),1,GL_FALSE,glm::value_ptr(mat));ECLIPSE_CHECK_GL_ERROR;
+
+  }
+
+
 
 // caching uniform locations , if we get unifroms every like say 100 things it
 // will keep calling it 100 times , we call it once and cache

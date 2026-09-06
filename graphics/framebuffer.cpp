@@ -8,8 +8,8 @@
         :mFbo(0),
         mTextureId(0),
         mRenderBufferId(0),
-        mCCR(1),mCCG(1),mCCB(1),mCCA(1),mWidth(width),mHeight(height)
-
+        mSize({width,height}),
+        mClearColor(1.f)
        {
           glGenFramebuffers(1,&mFbo);ECLIPSE_CHECK_GL_ERROR;
           glBindFramebuffer(GL_FRAMEBUFFER,mFbo);ECLIPSE_CHECK_GL_ERROR;
@@ -17,7 +17,7 @@
           glGenTextures(1,&mTextureId);ECLIPSE_CHECK_GL_ERROR;
 
           glBindTexture(GL_TEXTURE_2D,mTextureId);ECLIPSE_CHECK_GL_ERROR;
-          glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,mWidth,mHeight,0,GL_RGBA,GL_UNSIGNED_BYTE,nullptr);ECLIPSE_CHECK_GL_ERROR;
+          glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,mSize.x,mSize.y,0,GL_RGBA,GL_UNSIGNED_BYTE,nullptr);ECLIPSE_CHECK_GL_ERROR;
           // we dont have ant valid data at start;
 
           glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -34,7 +34,7 @@
           glGenRenderbuffers(1,&mRenderBufferId);ECLIPSE_CHECK_GL_ERROR;
 
           glBindRenderbuffer(GL_RENDERBUFFER,mRenderBufferId);ECLIPSE_CHECK_GL_ERROR;
-          glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,mWidth,mHeight);ECLIPSE_CHECK_GL_ERROR;
+          glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,mSize.x,mSize.y);ECLIPSE_CHECK_GL_ERROR;
           glBindRenderbuffer(GL_RENDERBUFFER,0);ECLIPSE_CHECK_GL_ERROR;
 
           glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,mRenderBufferId);ECLIPSE_CHECK_GL_ERROR;

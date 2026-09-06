@@ -40,6 +40,6 @@ namespace eclipse::graphics::rendercommands{
   }
 
   void PopFrameBuffer::Execute(){
-    engine::Instance().GetRenderManager().PopFrameBuffer(nullptr);
+      engine::Instance().GetRenderManager().PopFrameBuffer(nullptr);
   }
 }

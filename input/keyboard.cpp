@@ -35,8 +35,8 @@ const Uint8* state = SDL_GetKeyboardState(NULL);
 // bounds check
 
 bool keyboard::Key(int key){
-  ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key <= KeyCount, "Invalid keyboard key");
-  if(key >= ECLIPSE_INPUT_KEY_FIRST && key <= KeyCount){
+  ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount, "Invalid keyboard key");
+  if(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount){
     return keys[key ];
    }
    return false;
@@ -44,9 +44,9 @@ bool keyboard::Key(int key){
 
 
 bool keyboard::KeyUp(int key){
-   ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key <= KeyCount, "Invalid keyboard key");
-  if(key >= ECLIPSE_INPUT_KEY_FIRST && key <= KeyCount){
-    return keys[key] && ! keysLast[key];
+   ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount, "Invalid keyboard key");
+  if(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount){
+    return !keys[key] && keysLast[key];
    }
    return false;
 }
@@ -54,10 +54,10 @@ bool keyboard::KeyUp(int key){
 
 bool keyboard::KeyDown(int key){
   
-  ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key <= KeyCount, "Invalid keyboard key");
+  ECLIPSE_ASSERT(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount, "Invalid keyboard key");
   if(key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount ){
   
-    return !keys[key] && keysLast[key]; 
+    return keys[key] && !keysLast[key];
    }
    return false;
 }

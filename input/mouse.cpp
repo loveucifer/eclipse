@@ -30,11 +30,10 @@ void mouse::Initialize(){
 }
 
 void mouse::Update(){
-  
-  uint32_t state = SDL_GetMouseState(&x, &y);
-
   xLast = x;
   yLast = y;
+
+  uint32_t state = SDL_GetMouseState(&x, &y);
 
 
   buttonsLast = buttons; // todo optimize is memccpy faster

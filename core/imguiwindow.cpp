@@ -37,7 +37,7 @@ namespace eclipse::core{
 
   void ImguiWindow::HandleSDLEvents(SDL_Event& event){
     ImGui_ImplSDL2_ProcessEvent(&event);
-    
+
   }
 
   void ImguiWindow::BeginRender(){
@@ -47,6 +47,7 @@ namespace eclipse::core{
   };
 
   void ImguiWindow::EndRender(){
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     ImGuiIO& io = ImGui::GetIO();

@@ -10,6 +10,9 @@
 #include <cstdint>
 #include <memory>
 #include "../graphics/framebuffer.h"
+#include "../glm/glm.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
+#include "../glm/gtc/type_ptr.hpp"
 using namespace eclipse;
 
 class Editor : public eclipse::App {
@@ -21,6 +24,10 @@ private:
   float xKeyOffset = 0.f;
   float yKeyOffset = 0.f;
   float keySpeed = 0.01f;
+
+
+  glm::vec2 mRectPos,mRectSize;
+
 
 public:
   // now that we have created our windowproperties and implemented it in our
@@ -65,10 +72,11 @@ public:
             #version 410 core
             layout(location = 0) in vec3 position;
             out vec3 vertexpos;
+            uniform mat4 model = mat4(1.0);
             uniform vec2 offset = vec2 (0.5);
             void main(){
               vertexpos = position + vec3(offset , 0);
-              gl_Position = vec4(position,1.0); 
+              gl_Position = model * vec4(position,1.0);
             }
          )";
 
@@ -84,20 +92,23 @@ public:
 
     mShader = std::make_shared<eclipse::graphics::shader>(vertexShader,
                                                           fragmentShader);
+
+    mRectPos = glm::vec2(0.f);
+    mRectSize = glm::vec2(1.f);
   }
 
   void Update() override {
 
     ECLIPSE_TRACE("Editor:: Update()");
-    int windowWidth = 0;
-    int windowHeight = 0;
-    engine::Instance().GetWindow().GetSize(windowWidth, windowHeight);
-    float xNormal = (float)input::mouse::X() / (float)windowWidth;
+
+    auto windowSize =engine::Instance().GetWindow().GetSize();
+
+    // engine::Instance().GetWindow().GetSize(windowWidth, windowHeight);
+    float xNormal = (float)input::mouse::X() / (float)windowSize.x;
     float yNormal =
-        (float)(windowHeight - input::mouse::Y()) / (float)windowHeight;
-    mShader->SetUniformFloat3("color", 1, 0, 0);
-    mShader->SetUniformFloat2("offset", xNormal + xKeyOffset,
-                              yNormal + yKeyOffset);
+        (float)(windowSize.y- input::mouse::Y()) / (float)windowSize.y;
+
+
 
     if (input::keyboard::Key(input::ECLIPSE_INPUT_KEY_LEFT)) {
       xKeyOffset -= keySpeed;
@@ -111,14 +122,18 @@ public:
     if (input::keyboard::Key(input::ECLIPSE_INPUT_KEY_DOWN)) {
       yKeyOffset -= keySpeed;
     }
-    if (input::keyboard::Key(input::ECLIPSE_INPUT_KEY_LEFT)) {
-      xKeyOffset -= keySpeed * 100;
-    }
-    if (input::keyboard::Key(input::ECLIPSE_INPUT_KEY_RIGHT)) {
-      xKeyOffset += keySpeed * 100;
-    }
 
-    ECLIPSE_TRACE("{},{}", windowWidth, windowHeight);
+    mShader->SetUniformFloat3("color", 1, 0, 0);
+    // Mouse controls the color gradient; keyboard controls the rectangle position.
+    mShader->SetUniformFloat2("offset", xNormal, yNormal);
+
+
+    glm::mat4 model = glm::mat4(1.f);
+    model = glm::translate(model, {mRectPos.x,mRectPos.y,0.f});
+    model = glm::scale(model, {mRectSize.x,mRectSize.y,0.f});
+    mShader->SetUniformMat4("model", model);
+
+    ECLIPSE_TRACE("{},{}", windowSize.x, windowSize.y);
     ECLIPSE_TRACE("X: {}, Y: {}, {}{}{}{}{}", input::mouse::X(),
                   input::mouse::Y(),
 
@@ -147,22 +162,19 @@ public:
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
     // note
     
-    if (ImGui::Begin("RectPosX")) {
-      ImGui::DragFloat("Rect Pos X", &xKeyOffset, 0.1f);
+    if (ImGui::Begin("Rect Pos")) {
+      ImGui::DragFloat2("Rect Pos", glm::value_ptr(mRectPos), 0.01f);
     }
     ImGui::End();
 
-    if (ImGui::Begin("RectPosY")) {
-      ImGui::DragFloat("Rect Pos Y", &yKeyOffset, 0.1f);
+    if (ImGui::Begin("Rect Size")) {
+      ImGui::DragFloat2("Rect Size", glm::value_ptr(mRectSize), 0.01f);
     }
 
     ImGui::End();
 
     if (ImGui::Begin("GameView")) {
 
-      if(ImGui::IsWindowHovered()){
-        ImGui::SetNextFrameWantCaptureMouse(false);
-      }
       auto &window = engine::Instance().GetWindow();
       ImVec2 size = {480,360};
       ImVec2 uv0 ={0,1};

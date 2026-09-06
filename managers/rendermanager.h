@@ -3,7 +3,7 @@
 #include <queue>
 #include <stack>
 #include "../graphics/rendercommands.h"
-
+#include "../glm/glm.hpp"
 #define ECLIPSE_SUBMIT_RC(type,...)std::move(std::make_unique<eclipse::graphics::rendercommands::type>(__VA_ARGS__))
 
 namespace eclipse::managers{
@@ -21,10 +21,10 @@ namespace eclipse::managers{
 
         void Clear();
 
-        void SetViewport(int x, int y,int w, int h);
-
-       void SetClearColor(float r , float g , float b , float a);
-
+        // void SetViewport(int x, int y,int w, int h);
+        void SetViewPort(const glm::ivec4 dimensions);
+       // void SetClearColor(float r , float g , float b , float a);
+        void SetClearColor(const glm::vec4 clearColor);
        void SetWireFrameMode(bool enabled);
 
 

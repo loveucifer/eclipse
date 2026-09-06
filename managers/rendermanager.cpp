@@ -18,8 +18,9 @@ void RenderManager::SetWireFrameMode(bool enabled) {
   }
 }
 
-void RenderManager::SetViewport(int x, int y, int w, int h) {
-  glViewport(x, y, w, h);
+void RenderManager::SetViewPort(const glm::ivec4 dimensions) {
+  // glViewport(x, y, w, h);
+  glViewport(dimensions.x,dimensions.y,dimensions.z,dimensions.w);
   ECLIPSE_CHECK_GL_ERROR;
 }
 
@@ -43,8 +44,9 @@ void RenderManager::Initialize() {
   ECLIPSE_CHECK_GL_ERROR;
 }
 
-void RenderManager::SetClearColor(float r, float g, float b, float a) {
-  glClearColor(r, g, b, a);
+void RenderManager::SetClearColor(const glm::vec4 clearColor) {
+  // glClearColor(r, g, b, a);
+  glClearColor(clearColor.r,clearColor.g,clearColor.b,clearColor.a);
   ECLIPSE_CHECK_GL_ERROR;
 }
 
@@ -80,42 +82,36 @@ void RenderManager::Flush() {
   }
 }
 
-void RenderManager::PushFrameBuffer(
-    std::shared_ptr<graphics::FrameBuffer> framebuffer) {
-  mFrameBuffer.push(framebuffer);
-  uint32_t w,h;
-  framebuffer ->GetSize(w, h);
-  SetViewport(0, 0,w,h);
-   
+void RenderManager::PushFrameBuffer(std::shared_ptr<graphics::FrameBuffer> framebuffer) {
 
+  mFrameBuffer.push(framebuffer);
+  SetViewPort({0,0,framebuffer->GetSize().x,framebuffer->GetSize().y});
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->GetFbo());
-  float r, g, b, a;
-  framebuffer->GetClearColor(r, g, b, a);
-  glClearColor(r, g, b, a);
+  auto clearColor  = framebuffer->GetClearColor();
+  glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 }
-void RenderManager::PopFrameBuffer(
-    std::shared_ptr<graphics::FrameBuffer> framebuffer) {
-  ECLIPSE_ASSERT(mFrameBuffer.size() > 0,
-                 "RenderManager::PopFrameBuffer = empty stack");
+
+
+
+void RenderManager::PopFrameBuffer( std::shared_ptr<graphics::FrameBuffer> framebuffer) {
+  ECLIPSE_ASSERT(mFrameBuffer.size() > 0,"RenderManager::PopFrameBuffer = empty stack");
+
   if (mFrameBuffer.size() > 0) {
     mFrameBuffer.pop();
-    if (mFrameBuffer.size() > 0) {
-      auto nextFb = mFrameBuffer.top();
-      glBindFramebuffer(GL_FRAMEBUFFER, nextFb->GetFbo());
-      uint32_t w, h;
-      nextFb->GetSize(w, h);
-      SetViewport(0, 0, w, h);
+
+   if (mFrameBuffer.size() > 0) {
+    auto nextFb = mFrameBuffer.top();
+    glBindFramebuffer(GL_FRAMEBUFFER, nextFb->GetFbo());
+    SetViewPort({0, 0, nextFb->GetSize().x, nextFb->GetSize().y});
 
     } else {
 
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         auto& window = engine::Instance().GetWindow();
-        int w, h;
-        window.GetSize(w, h);
-        SetViewport(0, 0, w, h);
-
+        SetViewPort({0, 0, window.GetSize().x, window.GetSize().y});
     }
   }
 }

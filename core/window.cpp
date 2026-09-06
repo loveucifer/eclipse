@@ -23,9 +23,10 @@ namespace eclipse::core{
         wMin = 200;
         hMin = 180;
         flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-        ccR = 0;
-        ccG = 0;
-        ccB = 255;
+        // ccR = 0;
+        // ccG = 0;
+        // ccB = 255;
+        clearColor = glm::vec3(0,0,255);
   }
 
   
@@ -40,8 +41,11 @@ namespace eclipse::core{
   }
 
 
-  void window::GetSize(int& w , int& h){
+  // glm conversion
+  glm::ivec2 window::GetSize(){
+    int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
+    return glm::ivec2(w,h);
   }
 
 
@@ -122,7 +126,8 @@ namespace eclipse::core{
 
 
      mFrameBuffer = std::make_shared<graphics::FrameBuffer>(props.w,props.h);
-     mFrameBuffer ->SetClearColor(props.ccR, props.ccG, props.ccB, 1.f);
+     glm::vec4 clearColor{props.clearColor.r,props.clearColor.g,props.clearColor.b,1.f};
+     mFrameBuffer ->SetClearColor(clearColor);
      
 
     return true;
@@ -137,6 +142,7 @@ void window::BeginRender(){
   rm.Clear();
   rm.Submit(ECLIPSE_SUBMIT_RC(PushFrameBuffer,mFrameBuffer));
   // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the cached depth or color info
+  // engine::Instance().GetRenderManager().Clear();  // clearing it from our new manager class
 
 
 
