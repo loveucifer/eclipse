@@ -51,7 +51,7 @@ namespace eclipse::core{
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     ImGuiIO& io = ImGui::GetIO();
-    if(io.ConfigFlags && ImGuiConfigFlags_ViewportsEnable){
+    if(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable){
     // viewpoerts work a bit differnrelyt so we have to update and render
     // platform views for viewpoert specifically and after this we think we need to like make changes to this from our props as well right so make it a sub struct for our original props ?
       auto& window = engine::Instance().GetWindow();

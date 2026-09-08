@@ -8,6 +8,8 @@ namespace eclipse::graphics{
       mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions);
 
       mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions ,uint32_t *elementArray, uint32_t elementCount);
+
+      mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions, float* texcoords ,uint32_t *elementArray, uint32_t elementCount);
       ~mesh();
 
       void Bind();
@@ -24,5 +26,6 @@ namespace eclipse::graphics{
       uint32_t mVao;
       uint32_t mEbo;
       uint32_t mPositionVbo;
+      uint32_t mTexCordsVbo;
   };
 }

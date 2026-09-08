@@ -27,9 +27,5 @@ namespace eclipse::core{
       bool WantCaptureKeyboard();
       void BeginRender();
       void EndRender();
-      
-
-    private:
-      bool mDockingEnabled = false;
   };
 }

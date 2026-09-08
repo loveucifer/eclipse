@@ -13,6 +13,7 @@
 #include "../glm/glm.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
+#include "../graphics/texture.h"
 using namespace eclipse;
 
 class Editor : public eclipse::App {
@@ -20,11 +21,10 @@ class Editor : public eclipse::App {
 private:
   std::shared_ptr<eclipse::graphics::mesh> mMesh;
   std::shared_ptr<eclipse::graphics::shader> mShader;
-
+  std::shared_ptr<graphics::Texture>mTexture;
   float xKeyOffset = 0.f;
   float yKeyOffset = 0.f;
   float keySpeed = 0.01f;
-
 
   glm::vec2 mRectPos,mRectSize;
 
@@ -63,18 +63,28 @@ public:
 
     };
 
+    float texcoords[]{
+      1.f,1.f,
+      1.f,0.f,
+      0.f,0.f,
+      0.f,1.f
+    };
+
     uint32_t elements[]{0, 3, 1, 1, 3, 2};
 
-    mMesh = std::make_shared<eclipse::graphics::mesh>(&vertices[0], 4, 3,
+    mMesh = std::make_shared<eclipse::graphics::mesh>(&vertices[0], 4, 3,&texcoords[0],
                                                       &elements[0], 6);
 
     const char *vertexShader = R"(
             #version 410 core
             layout(location = 0) in vec3 position;
+            layout(location = 1)in vec2 texcoords;
             out vec3 vertexpos;
+            out vec2 uvs;
             uniform mat4 model = mat4(1.0);
             uniform vec2 offset = vec2 (0.5);
             void main(){
+              uvs = texcoords;
               vertexpos = position + vec3(offset , 0);
               gl_Position = model * vec4(position,1.0);
             }
@@ -84,17 +94,27 @@ public:
             #version 410 core
             out vec4 outColor;
             in vec3 vertexpos;
+            in vec2 uvs;
             uniform vec3 color = vec3(0.0);
+            uniform sampler2D tex;
             void main(){
-              outColor = vec4(vertexpos,1.0);
+                 outColor = texture(tex,uvs);
+              // outColor = vec4(vertexpos,1.0);
+
             }
          )";
 
-    mShader = std::make_shared<eclipse::graphics::shader>(vertexShader,
-                                                          fragmentShader);
+    mShader = std::make_shared<eclipse::graphics::shader>(
+        vertexShader,
+        fragmentShader
+    );
+
 
     mRectPos = glm::vec2(0.f);
     mRectSize = glm::vec2(1.f);
+
+    mTexture = std::make_shared<graphics::Texture>("res/fruit.png");
+    mTexture->SetTextureFilter(graphics::TextureFilter::Nearest);
   }
 
   void Update() override {
@@ -151,9 +171,9 @@ public:
   void Render() override {
 
     ECLIPSE_TRACE("Editor:: Render()");
-    auto rc =
-        std::make_unique<graphics::rendercommands::RenderMesh>(mMesh, mShader);
-    engine::Instance().GetRenderManager().Submit(std::move(rc));
+    engine::Instance().GetRenderManager().Submit(
+        std::make_unique<graphics::rendercommands::RenderMeshTextured>(
+            mMesh, mShader, mTexture));
   }
 
   void ImGuiRender() override {

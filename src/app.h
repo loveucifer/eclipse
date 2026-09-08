@@ -4,7 +4,7 @@ namespace eclipse{
   class App{
     public:
       App(){}
-      ~App(){}
+      virtual ~App(){}
 
       // after creating the props for windows we need a method to pass it onto
       // our editor or any other app we might add over this one day , so we need

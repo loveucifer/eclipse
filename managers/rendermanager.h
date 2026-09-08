@@ -4,7 +4,7 @@
 #include <stack>
 #include "../graphics/rendercommands.h"
 #include "../glm/glm.hpp"
-#define ECLIPSE_SUBMIT_RC(type,...)std::move(std::make_unique<eclipse::graphics::rendercommands::type>(__VA_ARGS__))
+#define ECLIPSE_SUBMIT_RC(type,...) std::make_unique<eclipse::graphics::rendercommands::type>(__VA_ARGS__)
 
 namespace eclipse::managers{
   class RenderManager{

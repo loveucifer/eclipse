@@ -2,11 +2,11 @@
 #include <memory>
 
 namespace eclipse::graphics {
-
+class Texture;
 class mesh;
 class shader;
-////////////
 class FrameBuffer;
+
 namespace rendercommands {
 
 class RenderCommand {
@@ -28,6 +28,22 @@ private:
   std::weak_ptr<mesh> mMesh;
   std::weak_ptr<shader> mShader;
 };
+
+class RenderMeshTextured : public RenderCommand {
+public:
+  // queue for use
+  RenderMeshTextured(std::weak_ptr<mesh> mesh, std::weak_ptr<shader> shader,std::weak_ptr<Texture>texture)
+      : mMesh(mesh), mShader(shader) ,mTexture(texture){}
+
+  virtual void Execute();
+
+private:
+  std::weak_ptr<mesh> mMesh;
+  std::weak_ptr<shader> mShader;
+  std::weak_ptr<Texture>mTexture;
+};
+
+
 
 class PushFrameBuffer :public RenderCommand{
   public:

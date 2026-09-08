@@ -5,7 +5,7 @@
 
 namespace eclipse::graphics{
   mesh::mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions)
-  :mVertexCount(vertexCount),mEbo(0),mElementCount(0)
+  :mElementCount(0),mVertexCount(vertexCount),mEbo(0)
 
 // vertexArray - is a raw pointer to our data sitting in normal CPU RAM
 // vertexCount - is the no of vertices we have
@@ -97,5 +97,23 @@ mesh::mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions,uint32_
       glDeleteBuffers(1,&mEbo);ECLIPSE_CHECK_GL_ERROR;
     }
     glDeleteVertexArrays(1,&mVao);ECLIPSE_CHECK_GL_ERROR;
+  }
+
+
+mesh::mesh(float* vertexArray, uint32_t vertexCount, uint32_t dimensions,float* texcoords, uint32_t* elementArray , uint32_t elementCount)
+:mesh(vertexArray,vertexCount,dimensions,elementArray,elementCount)
+  {
+   // glGenVertexArrays(1,&mVao);
+    glBindVertexArray(mVao); ECLIPSE_CHECK_GL_ERROR;
+    glGenBuffers(1,&mTexCordsVbo);ECLIPSE_CHECK_GL_ERROR;
+    glBindBuffer(GL_ARRAY_BUFFER,mTexCordsVbo); ECLIPSE_CHECK_GL_ERROR;
+    glBufferData(GL_ARRAY_BUFFER, vertexCount* 2 * /* tex cords are uv so 2 */ sizeof(float ),texcoords, GL_STATIC_DRAW);ECLIPSE_CHECK_GL_ERROR;
+    glEnableVertexAttribArray(1);ECLIPSE_CHECK_GL_ERROR;
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,0,0);ECLIPSE_CHECK_GL_ERROR;
+    // dimensions is 2 same as we setup in the size of buffer data
+
+    glDisableVertexAttribArray(0);ECLIPSE_CHECK_GL_ERROR;
+    glBindBuffer(GL_ARRAY_BUFFER,0);ECLIPSE_CHECK_GL_ERROR;
+    glBindVertexArray(0);ECLIPSE_CHECK_GL_ERROR;
   }
 }
