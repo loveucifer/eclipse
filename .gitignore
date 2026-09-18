@@ -3,7 +3,6 @@ bin/
 bin-obj/
 obj/
 Build/
-build/
 
 # Generated IDE / build files
 *.make
@@ -21,6 +20,12 @@ Makefile
 *.ninja_deps
 *.ninja_log
 
+# Meson build
+build/
+compile_commands.json
+.meson/
+meson-logs/
+
 # Python
 __pycache__/
 *.pyc
@@ -35,3 +40,7 @@ Thumbs.db
 # Local / IDE
 imgui.ini
 .vs/
+
+# Local documentation and notes
+docs/
+*.md

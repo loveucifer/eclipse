@@ -1,6 +1,3 @@
--- premake setup
-print("[premake] generating project files...")
-
 workspace "eclipse"
     startproject "eclipseeditor"
     architecture "ARM64"
@@ -19,6 +16,9 @@ externals = {}
 externals["spdlog"] = "external/spdlog"
 externals["glad"] = "external/glad"
 
+-- Process Glad before anything else
+include "external/glad"
+
 project "eclipse"
     location "eclipse"
     kind "StaticLib"
@@ -34,8 +34,6 @@ project "eclipse"
         "%{prj.name}/include/**.h",
         "%{prj.name}/include/**.hpp",
         "%{prj.name}/include/**.cpp",
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
         "src/**.h",
         "src/**.cpp",
         "core/**.h",
@@ -45,8 +43,7 @@ project "eclipse"
         "graphics/**.h",
         "graphics/**.cpp",
         "input/**.h",
-        "input/**.cpp",
-        "external/glad/src/glad.c"
+        "input/**.cpp"
     }
 
     removefiles
@@ -54,13 +51,13 @@ project "eclipse"
         "src/main.cpp"
     }
 
-    includedirs
+    sysincludedirs
     {
         "%{prj.name}/include",
-        "/opt/homebrew/include",
-        "/opt/homebrew/include/SDL2",
         "%{externals.spdlog}/include",
-        "%{externals.glad}/include"
+        "%{externals.glad}/include",
+        "/opt/homebrew/include",
+        "/opt/homebrew/include/SDL2"
     }
 
     includedirs
@@ -72,7 +69,10 @@ project "eclipse"
         "input"
     }
 
-    fatalwarnings "all"
+    flags
+    {
+        "FatalWarnings"
+    }
 
     defines
     {
@@ -81,6 +81,7 @@ project "eclipse"
 
     filter {"system:windows", "configurations:*"}
         systemversion "latest"
+
         defines
         {
             "ECLIPSE_PLATFORM_WINDOWS"
@@ -92,6 +93,7 @@ project "eclipse"
             ["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
             ["UseModernBuildSystem"] = "NO"
         }
+
         defines
         {
             "ECLIPSE_PLATFORM_MAC"
@@ -138,12 +140,12 @@ project "eclipseeditor"
         "src/main.cpp"
     }
 
-    includedirs
+    sysincludedirs
     {
         "eclipse/include",
+        "%{externals.spdlog}/include",
         "/opt/homebrew/include",
-        "/opt/homebrew/include/SDL2",
-        "%{externals.spdlog}/include"
+        "/opt/homebrew/include/SDL2"
     }
 
     includedirs
@@ -155,10 +157,14 @@ project "eclipseeditor"
         "input"
     }
 
-    fatalwarnings "all"
+    flags
+    {
+        "FatalWarnings"
+    }
 
     filter {"system:windows", "configurations:*"}
         systemversion "latest"
+
         defines
         {
             "ECLIPSE_PLATFORM_WINDOWS"
@@ -175,6 +181,7 @@ project "eclipseeditor"
             ["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
             ["UseModernBuildSystem"] = "NO"
         }
+
         defines
         {
             "ECLIPSE_PLATFORM_MAC"
@@ -185,15 +192,16 @@ project "eclipseeditor"
             "/opt/homebrew/lib"
         }
 
-        links
-        {
-            "SDL2",
-            "SDL2main"
-        }
-
         linkoptions
         {
             "-Wl,-framework,Cocoa"
+        }
+
+        links
+        {
+            "SDL2",
+            "SDL2main",
+            "glad"
         }
 
     filter {"system:linux", "configurations:*"}
@@ -205,6 +213,7 @@ project "eclipseeditor"
         links
         {
             "SDL2",
+            "glad",
             "dl"
         }
 

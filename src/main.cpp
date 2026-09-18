@@ -1,5 +1,5 @@
 #include "main.h"
-#include "../graphics/mesh.h"
+#include "../graphics/vertex.h"
 #include "../graphics/shader.h"
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
@@ -19,7 +19,7 @@ using namespace eclipse;
 class Editor : public eclipse::App {
 
 private:
-  std::shared_ptr<eclipse::graphics::mesh> mMesh;
+  std::shared_ptr<eclipse::graphics::VertexArray> mVertexArray;
   std::shared_ptr<eclipse::graphics::shader> mShader;
   std::shared_ptr<graphics::Texture>mTexture;
   float xKeyOffset = 0.f;
@@ -44,36 +44,39 @@ public:
   }
   void Initialize() override {
 
-    ECLIPSE_TRACE("Editor:: Initialize()");
-    float vertices[]{// -0.5f  ,-0.5f  ,0.f,
-                     // 0.f    ,0.5f   ,0.f,
-                     // 0.5f   ,-0.5f  ,0.f
+    // ECLIPSE_TRACE("Editor:: Initialize()");
 
-                     0.5f,  0.5f,
-                     0.f,
+    mVertexArray = std::make_shared<graphics::VertexArray>();
 
-                     0.5f,  -0.5f,
-                     0.f,
+    {
+    graphics::VertexBuffer<float>*  vb= new graphics::VertexBuffer<float>();
+    vb->PushVertex({0.5f,0.5f,0.f});
+    vb->PushVertex({0.5f,-0.5f,0.f});
+    vb->PushVertex({-0.5f,-0.5f,0.f});
+    vb->PushVertex({-0.5f,0.5f,0.f});
+    vb->SetLayout({3});
+    mVertexArray->PushBuffer(vb);
+    }
 
-                     -0.5f, -0.5f,
-                     0.f,
 
-                     -0.5f, 0.5f,
-                     0.f
+    {
+    graphics::VertexBuffer<short>*  vb= new graphics::VertexBuffer<short>();
+    vb->PushVertex({1 ,1});
+    vb->PushVertex({1,0});
+    vb->PushVertex({0,0});
+    vb->PushVertex({0,1});
+    vb->SetLayout({2});
+    mVertexArray->PushBuffer(vb);
+    }
 
-    };
 
-    float texcoords[]{
-      1.f,1.f,
-      1.f,0.f,
-      0.f,0.f,
-      0.f,1.f
-    };
 
-    uint32_t elements[]{0, 3, 1, 1, 3, 2};
 
-    mMesh = std::make_shared<eclipse::graphics::mesh>(&vertices[0], 4, 3,&texcoords[0],
-                                                      &elements[0], 6);
+    mVertexArray->SetElements({0,3,1,1,3,2});
+    mVertexArray->Upload();
+
+
+
 
     const char *vertexShader = R"(
             #version 410 core
@@ -119,7 +122,7 @@ public:
 
   void Update() override {
 
-    ECLIPSE_TRACE("Editor:: Update()");
+    // ECLIPSE_TRACE("Editor:: Update()");
 
     auto windowSize =engine::Instance().GetWindow().GetSize();
 
@@ -153,27 +156,27 @@ public:
     model = glm::scale(model, {mRectSize.x,mRectSize.y,0.f});
     mShader->SetUniformMat4("model", model);
 
-    ECLIPSE_TRACE("{},{}", windowSize.x, windowSize.y);
-    ECLIPSE_TRACE("X: {}, Y: {}, {}{}{}{}{}", input::mouse::X(),
-                  input::mouse::Y(),
+  //   ECLIPSE_TRACE("{},{}", windowSize.x, windowSize.y);
+  //   ECLIPSE_TRACE("X: {}, Y: {}, {}{}{}{}{}", input::mouse::X(),
+  //                 input::mouse::Y(),
 
-                  input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_LEFT),
+  //                 input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_LEFT),
 
-                  input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_RIGHT),
+  //                 input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_RIGHT),
 
-                  input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_MIDDLE),
+  //                 input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_MIDDLE),
 
-                  input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X1),
+  //                 input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X1),
 
-                  input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X2));
+  //                 input::mouse::Button(input::ECLIPSE_INPUT_MOUSE_X2));
   }
 
   void Render() override {
 
-    ECLIPSE_TRACE("Editor:: Render()");
+    // ECLIPSE_TRACE("Editor:: Render()");
     engine::Instance().GetRenderManager().Submit(
-        std::make_unique<graphics::rendercommands::RenderMeshTextured>(
-            mMesh, mShader, mTexture));
+        std::make_unique<graphics::rendercommands::RenderVertexArrayTextured>(
+            mVertexArray, mShader, mTexture));
   }
 
   void ImGuiRender() override {
