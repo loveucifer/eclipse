@@ -14,6 +14,10 @@ class Texture {
 public:
   explicit Texture(const std::string& path,
                    TextureFilter filter = TextureFilter::Linear);
+  Texture(std::uint32_t width, std::uint32_t height,
+          std::uint32_t channels, const unsigned char* pixels,
+          TextureFilter filter = TextureFilter::Linear,
+          bool alphaMask = false);
   ~Texture();
 
   Texture(const Texture&) = delete;
@@ -44,6 +48,7 @@ private:
   std::uint32_t mNumChannels = 0;
   unsigned char* mPixels = nullptr;
   bool mLoadedFromSource = false;
+  bool mAlphaMask = false;
 };
 
 } // namespace eclipse::graphics

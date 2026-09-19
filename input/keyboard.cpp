@@ -67,5 +67,9 @@ bool keyboard::KeyDown(int key){
    return false;
 }
 
+bool keyboard::IsValidKey(int key) {
+  return key >= ECLIPSE_INPUT_KEY_FIRST && key < KeyCount;
+}
+
 
 } // namespace eclipse::input

@@ -19,7 +19,9 @@
 #include "../systems/animation_system.h"
 #include "../systems/collision_system.h"
 #include "../systems/npc_system.h"
+#include "../systems/physics_system.h"
 #include "../core/clock.h"
+#include <filesystem>
 namespace eclipse{
   class Engine{
     public:
@@ -27,6 +29,9 @@ namespace eclipse{
       void Quit();
       void ReloadScene();
       bool LoadScene(const std::string& name);
+      bool SaveScene(const std::filesystem::path& path);
+      bool LoadSceneFile(const std::filesystem::path& path);
+      const std::string& GetSceneSource() const { return mSceneSource; }
       static Engine& Instance();
       inline core::Window& GetWindow(){return mWindow;}
       inline App& GetApp(){return* mApp;}
@@ -36,6 +41,7 @@ namespace eclipse{
       inline managers::AudioManager& GetAudioManager(){return mAudioManager;}
       inline managers::GameStateManager& GetGameState(){return mGameStateManager;}
       inline managers::SceneManager& GetSceneManager(){return mSceneManager;}
+      inline systems::PhysicsSystem& GetPhysicsSystem(){return mPhysicsSystem;}
     private:
 
       void Update();
@@ -50,6 +56,7 @@ namespace eclipse{
       systems::AnimationSystem mAnimationSystem;
       systems::CollisionSystem mCollisionSystem;
       systems::NpcSystem mNpcSystem;
+      systems::PhysicsSystem mPhysicsSystem;
       core::Clock mClock;
       core::Window mWindow;
       App* mApp;
@@ -58,6 +65,8 @@ namespace eclipse{
       managers::AudioManager mAudioManager;
       managers::GameStateManager mGameStateManager;
       managers::SceneManager mSceneManager;
+      std::string mSceneSource = "main";
+      void SceneLoaded();
       Engine();
       ~Engine();
       bool Initialize();

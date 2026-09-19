@@ -55,6 +55,10 @@ def main() -> None:
             fail("every asset requires a non-empty id")
         if asset_type in ("texture", "audio"):
             fields = ("path",)
+        elif asset_type == "font":
+            fields = ("path",)
+            if isinstance(entry.get("license"), str) and entry["license"]:
+                fields += ("license",)
         elif asset_type == "shader":
             fields = ("vertex", "fragment")
         else:

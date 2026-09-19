@@ -4,6 +4,7 @@ bin-obj/
 obj/
 Build/
 build/
+dist/
 
 # Generated IDE / build files
 *.make
@@ -17,9 +18,7 @@ build/
 *.opendb
 *.db
 Makefile
-*.ninja
-*.ninja_deps
-*.ninja_log
+compile_commands.json
 
 # Python
 __pycache__/
@@ -31,6 +30,8 @@ __pycache__/
 # Local documentation and notes
 docs/
 *.md
+!docs/
+docs/*
 
 # OS junk
 .DS_Store

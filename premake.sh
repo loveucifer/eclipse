@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
+set -e
+
 DIR="$(cd "$(dirname "$0")" && pwd)"
+PREMAKE_BIN="${PREMAKE:-}"
+
+if [ -z "$PREMAKE_BIN" ]; then
+  if command -v premake5 >/dev/null 2>&1; then
+    PREMAKE_BIN="premake5"
+  elif [ -x "$DIR/premake5" ]; then
+    PREMAKE_BIN="$DIR/premake5"
+  else
+    echo "premake5 was not found; install Premake 5 or set PREMAKE" >&2
+    exit 1
+  fi
+fi
+
 ARGS=("$@")
 
 for i in "${!ARGS[@]}"; do
@@ -8,15 +23,4 @@ for i in "${!ARGS[@]}"; do
   fi
 done
 
-"$DIR/premake5" --file="$DIR/premake5.lua" "${ARGS[@]}"
-status=$?
-
-if [ "$status" -eq 0 ] && [ ! -f "$DIR/Makefile.custom" ]; then
-  exit "$status"
-fi
-
-if [ "$status" -eq 0 ] && ! grep -q '\-include Makefile.custom' "$DIR/Makefile" 2>/dev/null; then
-  printf '\n-include Makefile.custom\n' >> "$DIR/Makefile"
-fi
-
-exit "$status"
+exec "$PREMAKE_BIN" --file="$DIR/premake5.lua" "${ARGS[@]}"

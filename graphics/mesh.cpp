@@ -6,7 +6,7 @@
 namespace eclipse::graphics {
 
 Mesh::Mesh(float *vertexArray, uint32_t vertexCount, uint32_t dimensions)
-    : mElementCount(0), mVertexCount(vertexCount), mVao(0), mEbo(0),
+    : mVertexCount(vertexCount), mElementCount(0), mVao(0), mEbo(0),
       mPositionVbo(0) {
   glGenVertexArrays(1, &mVao);
   ECLIPSE_CHECK_GL_ERROR;
@@ -73,6 +73,7 @@ Mesh::~Mesh() {
     ECLIPSE_CHECK_GL_ERROR;
   }
   glDeleteBuffers(1, &mPositionVbo);
+  if (mTexCordsVbo != 0) glDeleteBuffers(1, &mTexCordsVbo);
   ECLIPSE_CHECK_GL_ERROR;
 }
 

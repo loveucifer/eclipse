@@ -23,6 +23,7 @@ class EditorApp final : public App {
 public:
   core::WindowProperites GetWindowProperties() override;
   void Initialize(ecs::World& world, managers::AssetManager& assets) override;
+  void OnSceneLoaded(ecs::World& world, managers::AssetManager& assets) override;
   void Update(ecs::World& world, float deltaTime) override;
   void Shutdown() override;
   void ImGuiRender() override;
@@ -46,7 +47,10 @@ private:
   std::vector<systems::PathSearchFrame> mDemoFrames;
   std::size_t mDemoFrame = 0;
   std::array<char, 128> mAssetFilter{};
+  std::array<char, 256> mScenePath{};
   std::string mSelectedAssetId;
+  std::string mSceneStatus;
+  std::string mPrefabPath = "prefabs/object.json";
   float mDemoElapsed = 0.0f;
 };
 

@@ -11,6 +11,7 @@ namespace {
 
 GLuint CompileShader(GLenum type, const std::string& source,
                      const char* stageName) {
+  (void)stageName;
   const GLuint shader = glCreateShader(type);
   const GLchar* sourcePointer = source.c_str();
   glShaderSource(shader, 1, &sourcePointer, nullptr);

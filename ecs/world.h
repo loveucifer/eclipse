@@ -9,6 +9,7 @@
 #include "entity.h"
 
 #include <memory>
+#include <limits>
 #include <typeindex>
 #include <unordered_map>
 #include <unordered_set>
@@ -22,6 +23,8 @@ private:
   struct StorageBase {
     virtual ~StorageBase() = default;
     virtual void Erase(Entity entity) = 0;
+    virtual void CopyTo(Entity source, Entity target, World& world) const = 0;
+    virtual bool Contains(Entity entity) const = 0;
   };
 
   template <typename T>
@@ -29,6 +32,11 @@ private:
     std::unordered_map<Entity, T> values;
 
     void Erase(Entity entity) override { values.erase(entity); }
+    bool Contains(Entity entity) const override { return values.count(entity) != 0; }
+    void CopyTo(Entity source, Entity target, World& world) const override {
+      const auto it = values.find(source);
+      if (it != values.end()) world.Add<T>(target, it->second);
+    }
   };
 
   std::unordered_map<std::type_index, std::unique_ptr<StorageBase>> mStorages;
@@ -64,9 +72,40 @@ private:
 
 public:
   Entity CreateEntity() {
+    if (mNextEntity == std::numeric_limits<Entity>::max()) {
+      return NullEntity;
+    }
     const Entity entity = mNextEntity++;
     mEntities.insert(entity);
     return entity;
+  }
+
+  bool RestoreEntity(Entity entity) {
+    if (entity == NullEntity || entity == std::numeric_limits<Entity>::max() ||
+        mEntities.find(entity) != mEntities.end()) {
+      return false;
+    }
+    mEntities.insert(entity);
+    if (entity >= mNextEntity) {
+      mNextEntity = entity + 1;
+    }
+    return true;
+  }
+
+  Entity CloneFrom(const World& source, Entity entity) {
+    if (!source.IsAlive(entity)) return NullEntity;
+    const Entity copy = CreateEntity();
+    if (copy == NullEntity) return copy;
+    for (const auto& [type, storage] : source.mStorages)
+      storage->CopyTo(entity, copy, *this);
+    return copy;
+  }
+
+  std::vector<std::type_index> ComponentTypes(Entity entity) const {
+    std::vector<std::type_index> types;
+    for (const auto& [type, storage] : mStorages)
+      if (storage->Contains(entity)) types.push_back(type);
+    return types;
   }
 
   bool IsAlive(Entity entity) const {
@@ -139,12 +178,12 @@ public:
     if (!storage) {
       return nullptr;
     }
+    T* first = nullptr;
+    Entity lowest = std::numeric_limits<Entity>::max();
     for (auto& [entity, component] : storage->values) {
-      if (IsAlive(entity)) {
-        return &component;
-      }
+      if (IsAlive(entity) && entity < lowest) { lowest = entity; first = &component; }
     }
-    return nullptr;
+    return first;
   }
 
   template <typename First, typename Second, typename Function>

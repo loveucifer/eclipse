@@ -58,6 +58,8 @@ const char* AssetTypeName(AssetType type) {
     return "shader";
   case AssetType::Audio:
     return "audio";
+  case AssetType::Font:
+    return "font";
   }
   return "unknown";
 }
@@ -206,6 +208,18 @@ bool AssetManager::ParseManifest(const std::filesystem::path& manifestPath) {
       } else {
         info.path = path;
       }
+    } else if (type == "font") {
+      info.type = AssetType::Font;
+      if (!ReadString(object, "path", path) || path.empty()) {
+        RecordIssue(info.id, "Font path is required");
+        entryValid = false;
+      } else {
+        info.path = path;
+      }
+      std::string license;
+      if (ReadString(object, "license", license) && !license.empty()) {
+        info.licensePath = license;
+      }
     } else {
       RecordIssue(info.id, "Unsupported asset type: " + type);
       entryValid = false;
@@ -246,6 +260,9 @@ bool AssetManager::Validate() {
       validateFile(asset.fragmentPath, "Fragment shader");
     } else {
       validateFile(asset.path, AssetTypeName(asset.type));
+      if (asset.type == AssetType::Font && !asset.licensePath.empty()) {
+        validateFile(asset.licensePath, "Font license");
+      }
     }
   }
   return valid;
@@ -356,6 +373,79 @@ std::shared_ptr<core::AudioClip> AssetManager::GetAudioClip(
   return clip;
 }
 
+std::shared_ptr<graphics::Font> AssetManager::GetFont(
+    const std::string& id, std::uint32_t pixelHeight) {
+  const std::string key = id + "#" + std::to_string(pixelHeight);
+  if (const auto cached = mFonts.find(key); cached != mFonts.end()) {
+    return cached->second;
+  }
+  const auto* asset = FindAsset(id);
+  if (!asset || asset->type != AssetType::Font) {
+    RecordIssue(id, "Unknown font asset");
+    return nullptr;
+  }
+
+  std::filesystem::path path;
+  if (!ResolvePath(asset->path, path)) {
+    RecordIssue(id, "Font path escapes the asset root");
+    return nullptr;
+  }
+  auto font = std::make_shared<graphics::Font>(path.string(), pixelHeight);
+  if (!font->IsLoaded()) {
+    RecordIssue(id, "Font could not be loaded: " + asset->path.string());
+    return nullptr;
+  }
+  mFonts.emplace(key, font);
+  return font;
+}
+
+std::string AssetManager::FindTextureId(
+    const std::shared_ptr<graphics::Texture>& texture) const {
+  if (!texture) {
+    return {};
+  }
+  for (const auto& [id, loaded] : mTextures) {
+    const auto* asset = FindAsset(id);
+    if (loaded == texture && asset && asset->type == AssetType::Texture) {
+      return id;
+    }
+  }
+  return {};
+}
+
+std::string AssetManager::FindShaderId(
+    const std::shared_ptr<graphics::Shader>& shader) const {
+  if (!shader) {
+    return {};
+  }
+  for (const auto& [id, loaded] : mShaders) {
+    const auto* asset = FindAsset(id);
+    if (loaded == shader && asset && asset->type == AssetType::Shader) {
+      return id;
+    }
+  }
+  return {};
+}
+
+std::string AssetManager::FindFontId(
+    const std::shared_ptr<graphics::Font>& font) const {
+  if (!font) {
+    return {};
+  }
+  for (const auto& [key, loaded] : mFonts) {
+    if (loaded != font) {
+      continue;
+    }
+    const auto separator = key.rfind('#');
+    const std::string id = key.substr(0, separator);
+    const auto* asset = FindAsset(id);
+    if (asset && asset->type == AssetType::Font) {
+      return id;
+    }
+  }
+  return {};
+}
+
 std::shared_ptr<graphics::Texture> AssetManager::LoadTextureFile(
     const std::filesystem::path& path, graphics::TextureFilter filter) {
   std::filesystem::path resolved;
@@ -386,6 +476,14 @@ void AssetManager::UnloadGroup(const std::string& group) {
     mTextures.erase(asset.id);
     mShaders.erase(asset.id);
     mAudioClips.erase(asset.id);
+    const std::string fontPrefix = asset.id + "#";
+    for (auto it = mFonts.begin(); it != mFonts.end();) {
+      if (it->first.compare(0, fontPrefix.size(), fontPrefix) == 0) {
+        it = mFonts.erase(it);
+      } else {
+        ++it;
+      }
+    }
   }
 }
 
@@ -402,10 +500,12 @@ void AssetManager::UnloadUnused() {
   eraseUnused(mTextures);
   eraseUnused(mShaders);
   eraseUnused(mAudioClips);
+  eraseUnused(mFonts);
 }
 
 void AssetManager::ClearLoaded() {
   mAudioClips.clear();
+  mFonts.clear();
   mShaders.clear();
   mTextures.clear();
 }

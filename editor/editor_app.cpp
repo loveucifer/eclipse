@@ -16,6 +16,7 @@
 #include "../src/log.h"
 
 #include <external/imgui/imgui.h>
+#include <external/imgui/imgui_stdlib.h>
 #include <algorithm>
 #include <cstdint>
 #include <memory>
@@ -134,6 +135,12 @@ core::WindowProperites EditorApp::GetWindowProperties() {
 void EditorApp::Initialize(ecs::World& world, managers::AssetManager& assets) {
   ECLIPSE_TRACE("EditorApp::Initialize()");
 
+  if (mScenePath[0] == '\0') {
+    constexpr char defaultScenePath[] = "scenes/main.scene.json";
+    std::copy(std::begin(defaultScenePath), std::end(defaultScenePath),
+              mScenePath.begin());
+  }
+
   // The engine's sprite renderer expects one reusable textured quad.
   // Learn next: graphics/mesh.cpp, then graphics/render_system.cpp.
   float vertices[]{0.5f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f,
@@ -153,8 +160,13 @@ void EditorApp::Initialize(ecs::World& world, managers::AssetManager& assets) {
   mHurtTexture = assets.GetTexture("character.schoolgirl1.hurt");
   mDeadTexture = assets.GetTexture("character.schoolgirl1.dead");
   mShader = assets.GetShader("shader.sprite");
+  const auto defaultFont = assets.GetFont("font.default", 32);
+  const auto physicsFloorTexture = assets.GetTexture("tetris.block.i");
+  const auto physicsBoxTexture = assets.GetTexture("tetris.block.t");
+  const auto physicsBallTexture = assets.GetTexture("snake.bonus.blue");
   if (!mIdleTexture || !mWalkTexture || !mAttackTexture || !mChargeTexture ||
-      !mHurtTexture || !mDeadTexture || !mShader) {
+      !mHurtTexture || !mDeadTexture || !mShader || !defaultFont ||
+      !physicsFloorTexture || !physicsBoxTexture || !physicsBallTexture) {
     ECLIPSE_ERROR("Editor scene cannot initialize because required assets failed");
     return;
   }
@@ -239,6 +251,86 @@ void EditorApp::Initialize(ecs::World& world, managers::AssetManager& assets) {
   camera.fitSize = {928.0f, 793.0f};
   camera.fitScale = 1.25f;
 
+  const auto textEntity = world.CreateEntity();
+  world.Add<components::Name>(textEntity, components::Name{"Engine text"});
+  world.Add<components::Transform>(
+      textEntity, components::Transform{{28.0f, 52.0f}, {28.0f, 52.0f},
+                                        0.0f, {1.0f, -1.0f}});
+  components::TextRenderer label;
+  label.font = defaultFont;
+  label.shader = mShader;
+  label.text = "Eclipse text rendering";
+  label.color = {0.85f, 0.7f, 1.0f};
+  label.layer = 1000;
+  world.Add<components::TextRenderer>(textEntity, std::move(label));
+
+  // A visible Box2D sandbox: dynamic blocks and a ball fall onto this platform.
+  auto createPhysicsBox = [&world, this](
+                              const char* name, glm::vec2 position,
+                              glm::vec2 size,
+                              const std::shared_ptr<graphics::Texture>& texture,
+                              components::PhysicsBodyType type,
+                              float angularVelocity = 0.0f) {
+    const auto entity = world.CreateEntity();
+    world.Add<components::Name>(entity, components::Name{name});
+    world.Add<components::Transform>(
+        entity, components::Transform{position, position, 0.0f,
+                                      {size.x, -size.y}});
+    auto& sprite = world.Add<components::SpriteRenderer>(
+        entity, components::SpriteRenderer{mMesh, mShader, texture});
+    sprite.layer = 900;
+    components::RigidBody2D body;
+    body.type = type;
+    body.angularVelocity = angularVelocity;
+    world.Add<components::RigidBody2D>(entity, body);
+    components::BoxCollider2D collider;
+    collider.size = size;
+    collider.material.restitution = 0.2f;
+    world.Add<components::BoxCollider2D>(entity, collider);
+  };
+
+  createPhysicsBox("Box2D floor", {750.0f, 350.0f}, {280.0f, 24.0f},
+                   physicsFloorTexture,
+                   components::PhysicsBodyType::Static);
+  createPhysicsBox("Box2D block 1", {690.0f, 75.0f}, {44.0f, 44.0f},
+                   physicsBoxTexture,
+                   components::PhysicsBodyType::Dynamic, 0.8f);
+  createPhysicsBox("Box2D block 2", {750.0f, 125.0f}, {52.0f, 52.0f},
+                   physicsBoxTexture,
+                   components::PhysicsBodyType::Dynamic, -0.5f);
+  createPhysicsBox("Box2D block 3", {790.0f, 45.0f}, {36.0f, 36.0f},
+                   physicsBoxTexture,
+                   components::PhysicsBodyType::Dynamic, 1.2f);
+
+  const auto ball = world.CreateEntity();
+  world.Add<components::Name>(ball, components::Name{"Box2D ball"});
+  world.Add<components::Transform>(
+      ball, components::Transform{{850.0f, 95.0f}, {850.0f, 95.0f}, 0.0f,
+                                  {40.0f, -40.0f}});
+  auto& ballSprite = world.Add<components::SpriteRenderer>(
+      ball, components::SpriteRenderer{mMesh, mShader, physicsBallTexture});
+  ballSprite.layer = 900;
+  world.Add<components::RigidBody2D>(ball);
+  components::CircleCollider2D ballCollider;
+  ballCollider.radius = 20.0f;
+  ballCollider.material.restitution = 0.65f;
+  world.Add<components::CircleCollider2D>(ball, ballCollider);
+
+  const auto physicsText = world.CreateEntity();
+  world.Add<components::Name>(physicsText,
+                              components::Name{"Box2D demo label"});
+  world.Add<components::Transform>(
+      physicsText, components::Transform{{620.0f, 390.0f}, {620.0f, 390.0f},
+                                         0.0f, {1.0f, -1.0f}});
+  components::TextRenderer physicsLabel;
+  physicsLabel.font = defaultFont;
+  physicsLabel.shader = mShader;
+  physicsLabel.text = "Box2D live demo - F5 to reset";
+  physicsLabel.color = {0.45f, 0.85f, 1.0f};
+  physicsLabel.scale = 0.55f;
+  physicsLabel.layer = 1000;
+  world.Add<components::TextRenderer>(physicsText, std::move(physicsLabel));
+
   // A small fixed demo grid makes the algorithm visible before an NPC uses it.
   // Learn next: systems/pathfinding.cpp, especially cost and parent arrays.
   mDemoGrid.width = 20;
@@ -268,6 +360,7 @@ void EditorApp::Update(ecs::World& world, float deltaTime) {
   }
   // Animation and movement are handled by engine systems. This function only
   // chooses which player animation should be shown.
+  if (Engine::Instance().GetSceneSource() != "main") return;
   auto* sprite = world.Get<components::SpriteRenderer>(mPlayerEntity);
   auto* transform = world.Get<components::Transform>(mPlayerEntity);
   auto* animation = world.Get<components::Animation>(mPlayerEntity);
@@ -320,6 +413,23 @@ void EditorApp::Update(ecs::World& world, float deltaTime) {
   transform->scale = {mFacingRight ? frameSize : -frameSize, -frameSize};
 }
 
+void EditorApp::OnSceneLoaded(ecs::World& world, managers::AssetManager& assets) {
+  mPlayerEntity = mCameraEntity = mSelectedEntity = ecs::NullEntity;
+  auto ids = world.GetEntities(); std::sort(ids.begin(), ids.end());
+  for (auto id : ids) {
+    if (!mPlayerEntity && world.Get<components::PlayerController>(id)) mPlayerEntity = id;
+    if (!mCameraEntity && world.Get<components::Camera>(id)) mCameraEntity = id;
+  }
+  if (Engine::Instance().GetSceneSource() == "main") {
+    mIdleTexture = assets.GetTexture("character.schoolgirl1.idle");
+    mWalkTexture = assets.GetTexture("character.schoolgirl1.walk");
+    mAttackTexture = assets.GetTexture("character.schoolgirl1.attack");
+    mChargeTexture = assets.GetTexture("character.schoolgirl1.charge");
+    mHurtTexture = assets.GetTexture("character.schoolgirl1.hurt");
+    mDeadTexture = assets.GetTexture("character.schoolgirl1.dead");
+  }
+}
+
 void EditorApp::Shutdown() {
   // Release GPU objects before the OpenGL window is destroyed.
   mIdleTexture.reset();
@@ -337,6 +447,43 @@ void EditorApp::ImGuiRender() {
   ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
   auto& engine = Engine::Instance();
   auto& gameState = engine.GetGameState();
+  const bool commandDown = ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper;
+  if (mScenePath[0] != '\0' && commandDown &&
+      ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+    if (engine.SaveScene(mScenePath.data())) {
+      mSceneStatus = "Saved " + std::string(mScenePath.data());
+    } else {
+      mSceneStatus = engine.GetSceneManager().LastError();
+    }
+  }
+
+  ImGui::Begin("Scene");
+  ImGui::TextWrapped("Current: %s", engine.GetSceneSource().c_str());
+  ImGui::InputText("File", mScenePath.data(), mScenePath.size());
+  if (ImGui::Button("Save") && mScenePath[0] != '\0') {
+    if (engine.SaveScene(mScenePath.data())) {
+      mSceneStatus = "Saved " + std::string(mScenePath.data());
+    } else {
+      mSceneStatus = engine.GetSceneManager().LastError();
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Load") && mScenePath[0] != '\0') {
+    if (engine.LoadSceneFile(mScenePath.data())) {
+      mSceneStatus = "Loaded " + std::string(mScenePath.data());
+      if (!engine.GetWorld().IsAlive(mSelectedEntity)) {
+        mSelectedEntity = ecs::NullEntity;
+      }
+    } else {
+      mSceneStatus = engine.GetSceneManager().LastError();
+    }
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled("Ctrl/Cmd+S");
+  if (!mSceneStatus.empty()) {
+    ImGui::TextWrapped("%s", mSceneStatus.c_str());
+  }
+  ImGui::End();
 
   ImGui::Begin("Game State");
   const auto state = gameState.Current();
@@ -479,16 +626,136 @@ void EditorApp::ImGuiRender() {
 
   ImGui::Begin("Entities");
   auto& world = engine.GetWorld();
-  for (const auto entity : world.GetEntities()) {
-    const std::string label = "Entity " + std::to_string(entity);
+  if (ImGui::Button("Create entity")) {
+    mSelectedEntity = world.CreateEntity();
+    world.Add<components::Name>(mSelectedEntity);
+    world.Add<components::Transform>(mSelectedEntity);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Duplicate") && world.IsAlive(mSelectedEntity)) {
+    const auto original = mSelectedEntity;
+    mSelectedEntity = world.CloneFrom(world, original);
+    if (auto* camera = world.Get<components::Camera>(mSelectedEntity); camera && camera->followTarget == original)
+      camera->followTarget = mSelectedEntity;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Delete") && world.IsAlive(mSelectedEntity)) {
+    const auto deleted = mSelectedEntity;
+    for (auto id : world.GetEntities())
+      if (auto* camera = world.Get<components::Camera>(id); camera && camera->followTarget == deleted)
+        camera->followTarget = ecs::NullEntity;
+    world.DestroyEntity(deleted); world.FlushDestroyed(); mSelectedEntity = ecs::NullEntity;
+  }
+  ImGui::InputText("Prefab path", &mPrefabPath);
+  if (ImGui::Button("Save selected prefab")) {
+    mSceneStatus = engine.GetSceneManager().SavePrefab(mPrefabPath, world, mSelectedEntity, assetManager)
+        ? "Prefab saved" : engine.GetSceneManager().LastError();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Instantiate prefab")) {
+    mSelectedEntity = engine.GetSceneManager().Instantiate(mPrefabPath, world, assetManager);
+    if (!mSelectedEntity) mSceneStatus = engine.GetSceneManager().LastError();
+  }
+  auto entities = world.GetEntities(); std::sort(entities.begin(), entities.end());
+  for (const auto entity : entities) {
+    const auto* name = world.Get<components::Name>(entity);
+    const std::string label = (name ? name->value : "Entity") + " " + std::to_string(entity);
     if (ImGui::Selectable(label.c_str(), mSelectedEntity == entity))
       mSelectedEntity = entity;
   }
-  if (auto* transform = world.Get<components::Transform>(mSelectedEntity)) {
+  if (world.IsAlive(mSelectedEntity)) {
     ImGui::Separator();
-    ImGui::Text("Transform");
-    ImGui::DragFloat2("Position", &transform->position.x, 1.0f);
-    ImGui::DragFloat2("Scale", &transform->scale.x, 0.1f, 0.01f, 1000.0f);
+    if (auto* name = world.Get<components::Name>(mSelectedEntity)) {
+      ImGui::InputText("Name", &name->value);
+    }
+    if (auto* transform = world.Get<components::Transform>(mSelectedEntity)) {
+      ImGui::Text("Transform");
+      ImGui::DragFloat2("Position", &transform->position.x, 1.0f);
+      ImGui::DragFloat2("Scale", &transform->scale.x, 0.1f, 0.01f,
+                        1000.0f);
+      ImGui::DragFloat("Rotation", &transform->rotation, 0.01f);
+    }
+    if (auto* text = world.Get<components::TextRenderer>(mSelectedEntity)) {
+      ImGui::Text("TextRenderer");
+      ImGui::InputTextMultiline("Text", &text->text);
+      ImGui::ColorEdit3("Color", &text->color.x);
+      ImGui::DragFloat("Text scale", &text->scale, 0.05f, 0.05f, 20.0f);
+      ImGui::InputInt("Text layer", &text->layer);
+      if (ImGui::SmallButton("Remove TextRenderer")) {
+        world.Remove<components::TextRenderer>(mSelectedEntity);
+      }
+    } else if (ImGui::SmallButton("Add TextRenderer")) {
+      components::TextRenderer text;
+      text.font = assetManager.GetFont("font.default", 32);
+      text.shader = assetManager.GetShader("shader.sprite");
+      text.text = "Text";
+      world.Add<components::TextRenderer>(mSelectedEntity, std::move(text));
+    }
+
+    if (auto* body = world.Get<components::RigidBody2D>(mSelectedEntity)) {
+      ImGui::Text("RigidBody2D");
+      int type = static_cast<int>(body->type);
+      const char* types[] = {"Static", "Kinematic", "Dynamic"};
+      if (ImGui::Combo("Body type", &type, types, 3)) {
+        body->type = static_cast<components::PhysicsBodyType>(type);
+      }
+      ImGui::DragFloat2("Linear velocity", &body->linearVelocity.x, 1.0f);
+      ImGui::DragFloat("Angular velocity", &body->angularVelocity, 0.05f);
+      ImGui::DragFloat("Linear damping", &body->linearDamping, 0.05f, 0.0f);
+      ImGui::DragFloat("Angular damping", &body->angularDamping, 0.05f, 0.0f);
+      ImGui::DragFloat("Gravity scale", &body->gravityScale, 0.05f);
+      ImGui::Checkbox("Fixed rotation", &body->fixedRotation);
+      ImGui::Checkbox("Bullet", &body->bullet);
+      ImGui::Checkbox("Physics enabled", &body->enabled);
+      if (ImGui::SmallButton("Remove RigidBody2D")) {
+        world.Remove<components::RigidBody2D>(mSelectedEntity);
+      }
+    } else if (ImGui::SmallButton("Add RigidBody2D")) {
+      world.Add<components::RigidBody2D>(mSelectedEntity);
+    }
+
+    const auto drawMaterial = [](components::PhysicsMaterial2D& material) {
+      ImGui::DragFloat("Density", &material.density, 0.05f, 0.0f);
+      ImGui::DragFloat("Friction", &material.friction, 0.05f, 0.0f);
+      ImGui::DragFloat("Restitution", &material.restitution, 0.05f, 0.0f,
+                       1.0f);
+      ImGui::Checkbox("Sensor", &material.sensor);
+      ImGui::InputScalar("Category bits", ImGuiDataType_U32,
+                         &material.categoryBits);
+      ImGui::InputScalar("Mask bits", ImGuiDataType_U32,
+                         &material.maskBits);
+      ImGui::InputInt("Group index", &material.groupIndex);
+    };
+
+    if (auto* box = world.Get<components::BoxCollider2D>(mSelectedEntity)) {
+      ImGui::PushID("BoxCollider2D");
+      ImGui::Text("BoxCollider2D");
+      ImGui::DragFloat2("Physics box size", &box->size.x, 1.0f, 0.01f);
+      ImGui::DragFloat2("Physics box offset", &box->offset.x, 1.0f);
+      drawMaterial(box->material);
+      if (ImGui::SmallButton("Remove BoxCollider2D")) {
+        world.Remove<components::BoxCollider2D>(mSelectedEntity);
+      }
+      ImGui::PopID();
+    } else if (ImGui::SmallButton("Add BoxCollider2D")) {
+      world.Add<components::BoxCollider2D>(mSelectedEntity);
+    }
+
+    if (auto* circle =
+            world.Get<components::CircleCollider2D>(mSelectedEntity)) {
+      ImGui::PushID("CircleCollider2D");
+      ImGui::Text("CircleCollider2D");
+      ImGui::DragFloat("Physics circle radius", &circle->radius, 1.0f,
+                       0.01f);
+      ImGui::DragFloat2("Physics circle offset", &circle->offset.x, 1.0f);
+      drawMaterial(circle->material);
+      if (ImGui::SmallButton("Remove CircleCollider2D")) {
+        world.Remove<components::CircleCollider2D>(mSelectedEntity);
+      }
+      ImGui::PopID();
+    } else if (ImGui::SmallButton("Add CircleCollider2D")) {
+      world.Add<components::CircleCollider2D>(mSelectedEntity);
+    }
   }
   ImGui::End();
 

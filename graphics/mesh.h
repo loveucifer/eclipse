@@ -38,7 +38,7 @@ private:
   uint32_t mVertexCount , mElementCount;
   uint32_t mVao,mEbo;
   uint32_t mPositionVbo;
-  uint32_t mTexCordsVbo;
+  uint32_t mTexCordsVbo = 0;
 
 };
 } // namespace eclipse::graphics

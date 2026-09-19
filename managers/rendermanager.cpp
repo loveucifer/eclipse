@@ -62,7 +62,6 @@ void RenderManager::SetViewPort(const glm::ivec4 dimension){
 }
 void RenderManager::PushFrameBuffer(std::shared_ptr<graphics::FrameBuffer> frameBuffer){
   mFrameBuffer.push(frameBuffer);
-  uint32_t w,h;
   SetViewPort({0,0,frameBuffer->GetSize().x,frameBuffer->GetSize().y});
   glBindFramebuffer(GL_FRAMEBUFFER,frameBuffer->GetFbo());
 
@@ -70,7 +69,7 @@ void RenderManager::PushFrameBuffer(std::shared_ptr<graphics::FrameBuffer> frame
   glClearColor(clearColor.r,clearColor.g,clearColor.b,clearColor.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-void RenderManager::PopFrameBuffer(std::shared_ptr<graphics::FrameBuffer> frameBuffer){
+void RenderManager::PopFrameBuffer(std::shared_ptr<graphics::FrameBuffer>){
   if(mFrameBuffer.size()>0){
     mFrameBuffer.pop();
   }
@@ -80,7 +79,6 @@ void RenderManager::PopFrameBuffer(std::shared_ptr<graphics::FrameBuffer> frameB
     SetViewPort({0,0,nextFrameBuffer->GetSize().x,nextFrameBuffer->GetSize().y});
   }else{
     auto& window = Engine::Instance().GetWindow();
-    int w,h;
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     SetViewPort({0,0,window.GetSize().x,window.GetSize().y});
   }

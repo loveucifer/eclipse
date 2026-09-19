@@ -3,6 +3,7 @@
 #include "../core/audioclip.h"
 #include "../graphics/shader.h"
 #include "../graphics/texture.h"
+#include "../graphics/font.h"
 
 #include <filesystem>
 #include <memory>
@@ -16,6 +17,7 @@ enum class AssetType {
   Texture,
   Shader,
   Audio,
+  Font,
 };
 
 struct AssetInfo {
@@ -25,6 +27,7 @@ struct AssetInfo {
   std::filesystem::path path;
   std::filesystem::path vertexPath;
   std::filesystem::path fragmentPath;
+  std::filesystem::path licensePath;
   graphics::TextureFilter textureFilter = graphics::TextureFilter::Linear;
 };
 
@@ -49,6 +52,13 @@ public:
   std::shared_ptr<graphics::Texture> GetTexture(const std::string& id);
   std::shared_ptr<graphics::Shader> GetShader(const std::string& id);
   std::shared_ptr<core::AudioClip> GetAudioClip(const std::string& id);
+  std::shared_ptr<graphics::Font> GetFont(const std::string& id,
+                                          std::uint32_t pixelHeight = 48);
+  std::string FindTextureId(
+      const std::shared_ptr<graphics::Texture>& texture) const;
+  std::string FindShaderId(
+      const std::shared_ptr<graphics::Shader>& shader) const;
+  std::string FindFontId(const std::shared_ptr<graphics::Font>& font) const;
 
   // File loading is reserved for importers such as TMX, where referenced
   // dependencies are discovered inside another validated asset.
@@ -79,6 +89,7 @@ private:
   std::unordered_map<std::string, std::shared_ptr<graphics::Texture>> mTextures;
   std::unordered_map<std::string, std::shared_ptr<graphics::Shader>> mShaders;
   std::unordered_map<std::string, std::shared_ptr<core::AudioClip>> mAudioClips;
+  std::unordered_map<std::string, std::shared_ptr<graphics::Font>> mFonts;
 };
 
 } // namespace eclipse::managers

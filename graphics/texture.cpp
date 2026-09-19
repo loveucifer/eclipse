@@ -26,6 +26,16 @@ Texture::Texture(const std::string& path, TextureFilter filter)
   mPixels = nullptr;
 }
 
+Texture::Texture(std::uint32_t width, std::uint32_t height,
+                 std::uint32_t channels, const unsigned char* pixels,
+                 TextureFilter filter, bool alphaMask)
+    : mFilter(filter), mWidth(width), mHeight(height),
+      mNumChannels(channels), mPixels(const_cast<unsigned char*>(pixels)),
+      mAlphaMask(alphaMask) {
+  LoadTexture();
+  mPixels = nullptr;
+}
+
 Texture::~Texture() {
   if (mId != 0) {
     glDeleteTextures(1, &mId);
@@ -50,6 +60,10 @@ void Texture::LoadTexture() {
                  static_cast<GLsizei>(mWidth), static_cast<GLsizei>(mHeight), 0,
                  dataFormat, GL_UNSIGNED_BYTE, mPixels);
     mLoadedFromSource = true;
+    if (mAlphaMask) {
+      constexpr GLint swizzle[] = {GL_ONE, GL_ONE, GL_ONE, GL_RED};
+      glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+    }
   } else {
     constexpr unsigned char pixels[] = {
         255, 0,   255, 255, 255, 255, 255, 0,   255, 255, 255, 255,

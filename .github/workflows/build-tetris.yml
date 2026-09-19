@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -23,10 +24,14 @@ jobs:
             os: windows-2022
             artifact: eclipse-tetris-windows
 
-    runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: abdes/gha-setup-premake@v3
+        with:
+          version: "5.0.0-beta2"
 
       - name: Initialize MSVC
         if: runner.os == 'Windows'
@@ -36,56 +41,75 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install sdl2 glm ninja
+        run: brew install sdl2 glm freetype
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsdl2-dev libglm-dev ninja-build patchelf
+          sudo apt-get install -y build-essential libsdl2-dev libglm-dev libfreetype6-dev libgl1-mesa-dev patchelf
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: vcpkg install sdl2:x64-windows glm:x64-windows
+        run: vcpkg install --triplet=x64-windows
 
-      - name: Configure (Unix)
-        if: runner.os != 'Windows'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Generate (macOS)
+        if: runner.os == 'macOS'
+        run: >-
+          premake5 --file=premake5.lua
+          --sdl2-root="$(brew --prefix sdl2)"
+          --glm-root="$(brew --prefix glm)"
+          --freetype-root="$(brew --prefix freetype)"
+          --python=python3 gmake
 
-      - name: Configure (Windows)
+      - name: Generate (Linux)
+        if: runner.os == 'Linux'
+        run: premake5 --file=premake5.lua --sdl2-root=/usr --glm-root=/usr --freetype-root=/usr --python=python3 gmake
+
+      - name: Generate (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: >-
-          cmake -S . -B build -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
-          -DBUILD_TESTING=ON
-          -DVCPKG_TARGET_TRIPLET=x64-windows
-          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+        run: |
+          $deps = "$pwd\vcpkg_installed\x64-windows"
+          premake5 --file=premake5.lua --sdl2-root="$deps" --glm-root="$deps" --freetype-root="$deps" --python=python vs2022
 
-      - name: Build
-        run: cmake --build build --config Release
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        run: make -C build/gmake config=release
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: msbuild build\vs2022\eclipse.sln /m /p:Configuration=Release /p:Platform=x64
 
       - name: Test (Unix)
         if: runner.os != 'Windows'
-        run: ctest --test-dir build -C Release --output-on-failure
+        run: ./bin/Release/eclipsetests/eclipsetests
 
       - name: Test (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $env:PATH = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
-          ctest --test-dir build -C Release --output-on-failure
+          $env:PATH = "$pwd\vcpkg_installed\x64-windows\bin;$env:PATH"
+          .\bin\Release\eclipsetests\eclipsetests.exe
 
       - name: Stage package
         shell: bash
         run: |
-          cmake --install build --config Release --prefix dist
+          mkdir -p dist
+          cp -R bin/Release/tetrisgame/assets dist/assets
           cp README.md dist/README.md
+          cp external/box2d/LICENSE dist/BOX2D_LICENSE
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cp bin/Release/tetrisgame/tetrisgame.exe dist/tetrisgame.exe
+            cp vcpkg_installed/x64-windows/bin/*.dll dist/
+          else
+            cp bin/Release/tetrisgame/tetrisgame dist/tetrisgame
+          fi
 
       - name: Bundle SDL on macOS
         if: runner.os == 'macOS'
-        shell: bash
         run: |
           SDL_LIB="$(brew --prefix sdl2)/lib/libSDL2-2.0.0.dylib"
           cp "$SDL_LIB" dist/libSDL2-2.0.0.dylib
@@ -96,13 +120,11 @@ jobs:
 
       - name: Bundle SDL on Linux
         if: runner.os == 'Linux'
-        shell: bash
         run: |
           SDL_LIB="$(ldd dist/tetrisgame | awk '/libSDL2/{print $3; exit}')"
-          if [[ -n "$SDL_LIB" ]]; then
-            cp "$SDL_LIB" dist/
-            patchelf --set-rpath '$ORIGIN' dist/tetrisgame
-          fi
+          test -n "$SDL_LIB"
+          cp "$SDL_LIB" dist/
+          patchelf --set-rpath '$ORIGIN' dist/tetrisgame
 
       - name: Verify package contents
         shell: bash

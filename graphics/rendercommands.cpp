@@ -42,6 +42,7 @@ namespace eclipse::graphics::rendercommands{
       shader->SetUniformMat4("projection", mProjection);
       shader->SetUniformFloat2("uvOffset", mUvOffset);
       shader->SetUniformFloat2("uvScale", mUvScale);
+      shader->SetUniformFloat3("color", mColor);
       if(mesh ->GetElementCount() >0){
         glDrawElements(GL_TRIANGLES,mesh->GetElementCount(),GL_UNSIGNED_INT,0);
         ECLIPSE_CHECK_GL_ERROR;

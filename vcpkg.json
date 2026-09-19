@@ -1,0 +1,10 @@
+{
+  "name": "eclipse-engine",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "freetype",
+    "glm",
+    "sdl2"
+  ],
+  "builtin-baseline": "e6f9e70a29a3e80a1fc510d8503304315447112f"
+}

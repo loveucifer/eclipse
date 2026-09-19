@@ -2,6 +2,7 @@
   "version": 1,
   "assets": [
     { "id": "shader.sprite", "type": "shader", "vertex": "shaders/sprite.vert", "fragment": "shaders/sprite.frag", "group": "global" },
+    { "id": "font.default", "type": "font", "path": "fonts/Roboto.ttf", "license": "fonts/OFL.txt", "group": "global" },
 
     { "id": "character.schoolgirl1.idle", "type": "texture", "path": "character/Schoolgirl_1/Idle.png", "filter": "nearest", "group": "main" },
     { "id": "character.schoolgirl1.walk", "type": "texture", "path": "character/Schoolgirl_1/Walk.png", "filter": "nearest", "group": "main" },

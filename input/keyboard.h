@@ -16,6 +16,7 @@ namespace eclipse::input{
       static bool Key(int key);
       static bool KeyDown(int key);
       static bool KeyUp(int key);
+      static bool IsValidKey(int key);
 
     private:
       constexpr static const int KeyCount = 287; // sdl scan codes for num

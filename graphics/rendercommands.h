@@ -30,12 +30,13 @@ public:
                      std::weak_ptr<Texture> texture,
                      const glm::mat4& model,
                      const glm::mat4& view,
-                     const glm::mat4& projection,
-                     const glm::vec2& uvOffset,
-                     const glm::vec2& uvScale)
+                      const glm::mat4& projection,
+                      const glm::vec2& uvOffset,
+                      const glm::vec2& uvScale,
+                      const glm::vec3& color = glm::vec3(1.0f))
       : mMesh(mesh), mShader(shader), mTexture(texture), mModel(model),
         mView(view), mProjection(projection), mUvOffset(uvOffset),
-        mUvScale(uvScale) {}
+         mUvScale(uvScale), mColor(color) {}
 private:
   std::weak_ptr<Mesh> mMesh;
   std::weak_ptr<Shader> mShader;
@@ -45,6 +46,7 @@ private:
   glm::mat4 mProjection;
   glm::vec2 mUvOffset;
   glm::vec2 mUvScale;
+  glm::vec3 mColor;
 };
 
 

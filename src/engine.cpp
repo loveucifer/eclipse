@@ -2,6 +2,7 @@
 
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
+#include "../input/actions.h"
 #include "../src/log.h"
 
 #include <SDL2/SDL.h>
@@ -87,16 +88,35 @@ void Engine::Update() {
   mCollisionSystem.Update(mWorld);
   mAnimationSystem.Update(mWorld, deltaTime);
   mApp->Update(mWorld, deltaTime);
+  mPhysicsSystem.Update(mWorld, deltaTime);
   mCameraSystem.Update(mWorld, mWindow.GetSize());
   mWorld.FlushDestroyed();
 }
 
 void Engine::ReloadScene() {
-  LoadScene(mSceneManager.Current().empty() ? "main" : mSceneManager.Current());
+  if (std::filesystem::path(mSceneSource).extension() == ".json") LoadSceneFile(mSceneSource);
+  else LoadScene(mSceneSource);
 }
 
 bool Engine::LoadScene(const std::string& name) {
-  return mSceneManager.Load(name, mWorld, mAssetManager);
+  const auto source = name;
+  if (!mSceneManager.Load(source, mWorld, mAssetManager)) return false;
+  mSceneSource = source; SceneLoaded(); return true;
+}
+
+bool Engine::SaveScene(const std::filesystem::path& path) {
+  return mSceneManager.SaveFile(path, mWorld, mAssetManager);
+}
+
+bool Engine::LoadSceneFile(const std::filesystem::path& path) {
+  if (!mSceneManager.LoadFile(path, mWorld, mAssetManager)) return false;
+  mSceneSource = path.string(); SceneLoaded(); return true;
+}
+
+void Engine::SceneLoaded() {
+  mPhysicsSystem.Reset();
+  if (mApp) mApp->OnSceneLoaded(mWorld, mAssetManager);
+  mCameraSystem.Update(mWorld, mWindow.GetSize());
 }
 
 void Engine::Render() {
@@ -148,6 +168,7 @@ bool Engine::Initialize() {
 
   input::mouse::Initialize();
   input::keyboard::Initialize();
+  input::InitializeActions();
   mSceneManager.Register(
       "main", [this](ecs::World& world, managers::AssetManager& assets) {
         mApp->Initialize(world, assets);
